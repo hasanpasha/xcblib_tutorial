@@ -1,0 +1,4790 @@
+%!TeX program = xelatex
+
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[12pt,oneside,titlepage]{book}
+\pagestyle{headings}
+\usepackage{amsmath,amssymb}
+\usepackage{minted}
+\usepackage{lmodern}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={Basic Graphics Programming With The XCB Library},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage[a4paper, top=20mm, bottom=10mm, left=15mm, right=15mm]{geometry}
+\usepackage{listings}
+\newcommand{\passthrough}[1]{#1}
+\lstset{defaultdialect=[5.3]Lua}
+\lstset{defaultdialect=[x86masm]Assembler}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\definecolor{codegray}{HTML}{F0F0F0}
+\definecolor{framegray}{HTML}{C0C0C0}
+
+\usepackage{lstautogobble}
+\lstset{
+    numbers=left,
+    numberstyle=\footnotesize,
+    tabsize=2,
+    breaklines=true,
+    breakautoindent=true,
+    breakatwhitespace=false,
+    backgroundcolor=\color{codegray},
+    frame=none,
+    basicstyle=\ttfamily,
+    autogobble=true,
+    columns=fixed,
+    basewidth={0.5em,0.5em},
+    frame=tblr,
+    framextopmargin=4pt,
+    framexbottommargin=4pt,
+    rulecolor=\color{framegray},
+    literate={”}{{''}}1 {“}{{``}}1 {…}{{...}}1 {‒}{{--}}1,
+    language=c
+}
+\let\verbatim\relax
+\lstnewenvironment{verbatim}{}{}
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+
+\title{Basic Graphics Programming With The XCB Library}
+\author{}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{enumerate}
+\tightlist
+\item
+  \protect\hyperlink{intro}{Introduction}
+\item
+  \protect\hyperlink{Xmodel}{The client and server model of the X window
+  system}
+\item
+  \protect\hyperlink{asynch}{GUI programming: the asynchronous model}
+\item
+  \protect\hyperlink{notions}{Basic XCB notions}
+
+  \begin{enumerate}
+  \tightlist
+  \item
+    \protect\hyperlink{conn}{The X Connection}
+  \item
+    \protect\hyperlink{requestsreplies}{Requests and replies: the Xlib
+    killers}
+  \item
+    \protect\hyperlink{gc}{The Graphics Context}
+  \item
+    Object handles
+  \item
+    Memory allocation for XCB structures
+  \item
+    \protect\hyperlink{events}{Events}
+  \end{enumerate}
+\item
+  \protect\hyperlink{use}{Using XCB-based programs}
+
+  \begin{enumerate}
+  \tightlist
+  \item
+    \protect\hyperlink{inst}{Installation of XCB}
+  \item
+    \protect\hyperlink{comp}{Compiling XCB-based programs}
+  \end{enumerate}
+\item
+  \protect\hyperlink{openconn}{Opening and closing the connection to an
+  X server}
+\item
+  \protect\hyperlink{screen}{Checking basic information about a
+  connection}
+\item
+  \protect\hyperlink{helloworld}{Creating a basic window - the "hello
+  world" program}
+\item
+  \protect\hyperlink{drawing}{Drawing in a window}
+
+  \begin{enumerate}
+  \tightlist
+  \item
+    \protect\hyperlink{allocgc}{Allocating a Graphics Context}
+  \item
+    \protect\hyperlink{changegc}{Changing the attributes of a Graphics
+    Context}
+  \item
+    \protect\hyperlink{drawingprim}{Drawing primitives: point, line,
+    box, circle,...}
+  \end{enumerate}
+\item
+  \protect\hyperlink{xevents}{X Events}
+
+  \begin{enumerate}
+  \tightlist
+  \item
+    \protect\hyperlink{register}{Registering for event types using event
+    masks}
+  \item
+    \protect\hyperlink{loop}{Receiving events: writing the events loop}
+  \item
+    \protect\hyperlink{expose}{Expose events}
+  \item
+    \protect\hyperlink{userinput}{Getting user input}
+
+    \begin{enumerate}
+    \tightlist
+    \item
+      \protect\hyperlink{mousepressrelease}{Mouse button press and
+      release events}
+    \item
+      \protect\hyperlink{mousemvnt}{Mouse movement events}
+    \item
+      \protect\hyperlink{mouseenter}{Mouse pointer enter and leave
+      events}
+    \item
+      \protect\hyperlink{focus}{The keyboard focus}
+    \item
+      \protect\hyperlink{keypress}{Keyboard press and release events}
+    \end{enumerate}
+  \item
+    \protect\hyperlink{eventex}{X events: a complete example}
+  \end{enumerate}
+\item
+  \protect\hyperlink{font}{Handling text and fonts}
+
+  \begin{enumerate}
+  \tightlist
+  \item
+    \protect\hyperlink{fontstruct}{The Font structure}
+  \item
+    \protect\hyperlink{openingfont}{Opening a Font}
+  \item
+    \protect\hyperlink{assigningfont}{Assigning a Font to a Graphic
+    Context}
+  \item
+    \protect\hyperlink{drawingtext}{Drawing text in a drawable}
+  \item
+    \protect\hyperlink{fontcompleteexample}{Complete example}
+  \end{enumerate}
+\item
+  Windows hierarchy
+
+  \begin{enumerate}
+  \tightlist
+  \item
+    Root, parent and child windows
+  \item
+    Events propagation
+  \end{enumerate}
+\item
+  \protect\hyperlink{wm}{Interacting with the window manager}
+
+  \begin{enumerate}
+  \tightlist
+  \item
+    \protect\hyperlink{wmprop}{Window properties}
+  \item
+    \protect\hyperlink{wmname}{Setting the window name and icon name}
+  \item
+    Setting preferred window size(s)
+  \item
+    Setting miscellaneous window manager hints
+  \item
+    Setting an application's icon
+  \item
+    Obeying the delete-window protocol
+  \end{enumerate}
+\item
+  \protect\hyperlink{winop}{Simple window operations}
+
+  \begin{enumerate}
+  \tightlist
+  \item
+    \protect\hyperlink{winmap}{Mapping and unmapping a window}
+  \item
+    \protect\hyperlink{winconf}{Configuring a window}
+  \item
+    \protect\hyperlink{winmove}{Moving a window around the screen}
+  \item
+    \protect\hyperlink{winsize}{Resizing a window}
+  \item
+    \protect\hyperlink{winstack}{Changing windows stacking order: raise
+    and lower}
+  \item
+    Iconifying and de-iconifying a window
+  \item
+    \protect\hyperlink{wingetinfo}{Getting informations about a window}
+  \end{enumerate}
+\item
+  \protect\hyperlink{usecolor}{Using colors to paint the rainbow}
+
+  \begin{enumerate}
+  \tightlist
+  \item
+    \protect\hyperlink{colormap}{Color maps}
+  \item
+    \protect\hyperlink{colormapalloc}{Allocating and freeing Color Maps}
+  \item
+    \protect\hyperlink{alloccolor}{Allocating and freeing a color entry}
+  \item
+    Drawing with a color
+  \end{enumerate}
+\item
+  \protect\hyperlink{pixmaps}{X Bitmaps and Pixmaps}
+
+  \begin{enumerate}
+  \tightlist
+  \item
+    \protect\hyperlink{pixmapswhat}{What is a X Bitmap ? An X Pixmap ?}
+  \item
+    Loading a bitmap from a file
+  \item
+    Drawing a bitmap in a window
+  \item
+    \protect\hyperlink{pixmapscreate}{Creating a pixmap}
+  \item
+    \protect\hyperlink{pixmapsdraw}{Drawing a pixmap in a window}
+  \item
+    \protect\hyperlink{pixmapsfree}{Freeing a pixmap}
+  \end{enumerate}
+\item
+  \protect\hyperlink{mousecursor}{Messing with the mouse cursor}
+
+  \begin{enumerate}
+  \tightlist
+  \item
+    \protect\hyperlink{mousecursorcreate}{Creating and destroying a
+    mouse cursor}
+  \item
+    \protect\hyperlink{mousecursorset}{Setting a window's mouse cursor}
+  \item
+    \protect\hyperlink{mousecursorexample}{Complete example}
+  \end{enumerate}
+\item
+  \protect\hyperlink{translation}{Translation of basic Xlib functions
+  and macros}
+
+  \begin{enumerate}
+  \tightlist
+  \item
+    \protect\hyperlink{displaystructure}{Members of the Display
+    structure}
+
+    \begin{enumerate}
+    \tightlist
+    \item
+      \protect\hyperlink{ConnectionNumber}{ConnectionNumber}
+    \item
+      \protect\hyperlink{DefaultScreen}{DefaultScreen}
+    \item
+      \protect\hyperlink{QLength}{QLength}
+    \item
+      \protect\hyperlink{ScreenCount}{ScreenCount}
+    \item
+      \protect\hyperlink{ServerVendor}{ServerVendor}
+    \item
+      \protect\hyperlink{ProtocolVersion}{ProtocolVersion}
+    \item
+      \protect\hyperlink{ProtocolRevision}{ProtocolRevision}
+    \item
+      \protect\hyperlink{VendorRelease}{VendorRelease}
+    \item
+      \protect\hyperlink{DisplayString}{DisplayString}
+    \item
+      \protect\hyperlink{BitmapUnit}{BitmapUnit}
+    \item
+      \protect\hyperlink{BitmapBitOrder}{BitmapBitOrder}
+    \item
+      \protect\hyperlink{BitmapPad}{BitmapPad}
+    \item
+      \protect\hyperlink{ImageByteOrder}{ImageByteOrder}
+    \end{enumerate}
+  \item
+    \protect\hyperlink{screenofdisplay}{ScreenOfDisplay related
+    functions}
+
+    \begin{enumerate}
+    \tightlist
+    \item
+      \protect\hyperlink{ScreenOfDisplay}{ScreenOfDisplay}
+    \item
+      \protect\hyperlink{DefaultScreenOfDisplay}{DefaultScreenOfDisplay}
+    \item
+      \protect\hyperlink{RootWindow}{RootWindow / RootWindowOfScreen}
+    \item
+      \protect\hyperlink{DefaultRootWindow}{DefaultRootWindow}
+    \item
+      \protect\hyperlink{DefaultVisual}{DefaultVisual /
+      DefaultVisualOfScreen}
+    \item
+      \protect\hyperlink{DefaultGC}{DefaultGC / DefaultGCOfScreen}
+    \item
+      \protect\hyperlink{BlackPixel}{BlackPixel / BlackPixelOfScreen}
+    \item
+      \protect\hyperlink{WhitePixel}{WhitePixel / WhitePixelOfScreen}
+    \item
+      \protect\hyperlink{DisplayWidth}{DisplayWidth / WidthOfScreen}
+    \item
+      \protect\hyperlink{DisplayHeight}{DisplayHeight / HeightOfScreen}
+    \item
+      \protect\hyperlink{DisplayWidthMM}{DisplayWidthMM /
+      WidthMMOfScreen}
+    \item
+      \protect\hyperlink{DisplayHeightMM}{DisplayHeightMM /
+      HeightMMOfScreen}
+    \item
+      \protect\hyperlink{DisplayPlanes}{DisplayPlanes / DefaultDepth /
+      DefaultDepthOfScreen / PlanesOfScreen}
+    \item
+      \protect\hyperlink{DefaultColormap}{DefaultColormap /
+      DefaultColormapOfScreen}
+    \item
+      \protect\hyperlink{MinCmapsOfScreen}{MinCmapsOfScreen}
+    \item
+      \protect\hyperlink{MaxCmapsOfScreen}{MaxCmapsOfScreen}
+    \item
+      \protect\hyperlink{DoesSaveUnders}{DoesSaveUnders}
+    \item
+      \protect\hyperlink{DoesBackingStore}{DoesBackingStore}
+    \item
+      \protect\hyperlink{EventMaskOfScreen}{EventMaskOfScreen}
+    \end{enumerate}
+  \item
+    \protect\hyperlink{misc}{Miscellaneaous macros}
+
+    \begin{enumerate}
+    \tightlist
+    \item
+      \protect\hyperlink{DisplayOfScreen}{DisplayOfScreen}
+    \item
+      \protect\hyperlink{DisplayCells}{DisplayCells / CellsOfScreen}
+    \end{enumerate}
+  \end{enumerate}
+\end{enumerate}
+
+\begin{enumerate}
+\item
+  \protect\hypertarget{intro}{}{Introduction}
+
+  This tutorial is based on the
+  \href{http://users.actcom.co.il/~choo/lupg/tutorials/xlib-programming/xlib-programming.html}{Xlib
+  Tutorial} written by
+  \href{mailto:choor\%20at\%20atcom\%20dot\%20co\%20dot\%20il}{Guy
+  Keren}. The author allowed me to take some parts of his text, mainly
+  the text which deals with the X Windows generality.
+
+  This tutorial is intended for people who want to start to program with
+  the \href{http://xcb.freedesktop.org}{XCB} library. keep in mind that
+  XCB, like the \href{http://tronche.com/gui/x/xlib/introduction}{Xlib}
+  library, isn't what most programmers wanting to write X applications
+  are looking for. They should use a much higher level GUI toolkit like
+  Motif, \href{http://www.lesstif.org}{LessTiff},
+  \href{http://www.gtk.org}{GTK}, \href{http://www.trolltech.com}{QT},
+  \href{http://www.enlightenment.org}{EWL},
+  \href{http://www.enlightenment.org}{ETK}, or use
+  \href{http://cairographics.org}{Cairo}. However, we need to start
+  somewhere. More than this, knowing how things work down below is never
+  a bad idea.
+
+  After reading this tutorial, one should be able to write very simple
+  graphical programs, but not programs with decent user interfaces. For
+  such programs, one of the previously mentioned libraries should be
+  used.
+
+  But what is XCB? Xlib has been the standard C binding for the
+  \href{http://www.x.org}{X Window System} protocol for many years now.
+  It is an excellent piece of work, but there are applications for which
+  it is not ideal, for example:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{Small platforms}: Xlib is a large piece of code, and it's
+    difficult to make it smaller
+  \item
+    \textbf{Latency hiding}: Xlib requests requiring a reply are
+    effectively synchronous: they block until the reply appears, whether
+    the result is needed immediately or not.
+  \item
+    \textbf{Direct access to the protocol}: Xlib does quite a bit of
+    caching, layering, and similar optimizations. While this is normally
+    a feature, it makes it difficult to simply emit specified X protocol
+    requests and process specific responses.
+  \item
+    \textbf{Threaded applications}: While Xlib does attempt to support
+    multithreading, the API makes this difficult and error-prone.
+  \item
+    \textbf{New extensions}: The Xlib infrastructure provides limited
+    support for the new creation of X extension client side code.
+  \end{itemize}
+
+  For these reasons, among others, XCB, an X C binding, has been
+  designed to solve the above problems and thus provide a base for
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Toolkit implementation.
+  \item
+    Direct protocol-level programming.
+  \item
+    Lightweight emulation of commonly used portions of the Xlib API.
+  \end{itemize}
+
+  \hfill\break
+\item
+  \protect\hypertarget{Xmodel}{}{The client and server model of the X
+  window system}
+
+  The X Window System was developed with one major goal: flexibility.
+  The idea was that the way things look is one thing, but the way things
+  work is another matter. Thus, the lower levels provide the tools
+  required to draw windows, handle user input, allow drawing graphics
+  using colors (or black and white screens), etc. To this point, a
+  decision was made to separate the system into two parts. A client that
+  decides what to do, and a server that actually draws on the screen and
+  reads user input in order to send it to the client for processing.
+
+  This model is the complete opposite of what is used to when dealing
+  with clients and servers. In our case, the user sits near the machine
+  controlled by the server, while the client might be running on a
+  remote machine. The server controls the screens, mouse and keyboard. A
+  client may connect to the server, request that it draws a window (or
+  several windows), and ask the server to send it any input the user
+  sends to these windows. Thus, several clients may connect to a single
+  X server (one might be running mail software, one running a WWW
+  browser, etc). When input is sent by the user to some window, the
+  server sends a message to the client controlling this window for
+  processing. The client decides what to do with this input, and sends
+  the server requests for drawing in the window.
+
+  The whole session is carried out using the X message protocol. This
+  protocol was originally carried over the TCP/IP protocol suite,
+  allowing the client to run on any machine connected to the same
+  network that the server is. Later on, the X servers were extended to
+  allow clients running on the local machine with more optimized access
+  to the server (note that an X protocol message may be several hundreds
+  of KB in size), such as using shared memory, or using Unix domain
+  sockets (a method for creating a logical channel on a Unix system
+  between two processes).
+\item
+  \protect\hypertarget{asynch}{}{GUI programming: the asynchronous
+  model}
+
+  Unlike conventional computer programs, that carry some serial nature,
+  a GUI program usually uses an asynchronous programming model, also
+  known as "event-driven programming". This means that that program
+  mostly sits idle, waiting for events sent by the X server, and then
+  acts upon these events. An event may say "The user pressed the 1st
+  button mouse in spot (x,y)", or "The window you control needs to be
+  redrawn". In order for the program to be responsive to the user input,
+  as well as to refresh requests, it needs to handle each event in a
+  rather short period of time (e.g. less that 200 milliseconds, as a
+  rule of thumb).
+
+  This also implies that the program may not perform operations that
+  might take a long time while handling an event (such as opening a
+  network connection to some remote server, or connecting to a database
+  server, or even performing a long file copy operation). Instead, it
+  needs to perform all these operations in an asynchronous manner. This
+  may be done by using various asynchronous models to perform the
+  longish operations, or by performing them in a different process or
+  thread.
+
+  So the way a GUI program looks is something like that:
+
+  \begin{enumerate}
+  \tightlist
+  \item
+    Perform initialization routines.
+  \item
+    Connect to the X server.
+  \item
+    Perform X-related initialization.
+  \item
+    While not finished:
+
+    \begin{enumerate}
+    \tightlist
+    \item
+      Receive the next event from the X server.
+    \item
+      Handle the event, possibly sending various drawing requests to the
+      X server.
+    \item
+      If the event was a quit message, exit the loop.
+    \end{enumerate}
+  \item
+    Close down the connection to the X server.
+  \item
+    Perform cleanup operations.
+  \end{enumerate}
+
+  \hfill\break
+\item
+  \protect\hypertarget{notions}{}{Basic XCB notions}
+
+  XCB has been created to eliminate the need for programs to actually
+  implement the X protocol layer. This library gives a program a very
+  low-level access to any X server. Since the protocol is standardized,
+  a client using any implementation of XCB may talk with any X server
+  (the same occurs for Xlib, of course). We now give a brief description
+  of the basic XCB notions. They will be detailed later.
+
+  \begin{enumerate}
+  \item
+    \protect\hypertarget{conn}{}{The X Connection}
+
+    The major notion of using XCB is the X Connection. This is a
+    structure representing the connection we have open with a given X
+    server. It hides a queue of messages coming from the server, and a
+    queue of pending requests that our client intends to send to the
+    server. In XCB, this structure is named 'xcb\_connection\_t'. It is
+    analogous to the Xlib Display. When we open a connection to an X
+    server, the library returns a pointer to such a structure. Later, we
+    supply this pointer to any XCB function that should send messages to
+    the X server or receive messages from this server.
+  \item
+    \protect\hypertarget{requestsreplies}{}{Requests and replies: the
+    Xlib killers}
+
+    To ask for information from the X server, we have to make a request
+    and ask for a reply. With Xlib, these two tasks are automatically
+    done: Xlib locks the system, sends a request, waits for a reply from
+    the X server and unlocks. This is annoying, especially if one makes
+    a lot of requests to the X server. Indeed, Xlib has to wait for the
+    end of a reply before asking for the next request (because of the
+    locks that Xlib sends). For example, here is a time-line of N=4
+    requests/replies with Xlib, with a round-trip latency
+    \textbf{T\_round\_trip} that is 5 times long as the time required to
+    write or read a request/reply (\textbf{T\_write/T\_read}):
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines]{text}
+  W-----RW-----RW-----RW-----R
+\end{minted}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      W: Writing request
+    \item
+      -: Stalled, waiting for data
+    \item
+      R: Reading reply
+    \end{itemize}
+
+    The total time is N * (T\_write + T\_round\_trip + T\_read).
+
+    With XCB, we can suppress most of the round-trips as the requests
+    and the replies are not locked. We usually send a request, then XCB
+    returns to us a \textbf{cookie}, which is an identifier. Then,
+    later, we ask for a reply using this \textbf{cookie} and XCB returns
+    a pointer to that reply. Hence, with XCB, we can send a lot of
+    requests, and later in the program, ask for all the replies when we
+    need them. Here is the time-line for 4 requests/replies when we use
+    this property of XCB:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+  WWWW--RRRR
+\end{minted}
+
+    The total time is N * T\_write + max (0, T\_round\_trip - (N-1) *
+    T\_write) + N * T\_read. Which can be considerably faster than all
+    those Xlib round-trips.
+
+    Here is a program that computes the time to create 500 atoms with
+    Xlib and XCB. It shows the Xlib way, the bad XCB way (which is
+    similar to Xlib) and the good XCB way. On my computer, XCB is 25
+    times faster than Xlib.
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/time.h>
+
+#include <xcb/xcb.h>
+
+#include <X11/Xlib.h>
+
+double
+get_time(void)
+{
+  struct timeval timev;
+
+  gettimeofday(&timev, NULL);
+
+  return (double)timev.tv_sec + (((double)timev.tv_usec) / 1000000);
+}
+
+int
+main ()
+{
+  xcb_connection_t         *c;
+  xcb_atom_t               *atoms;
+  xcb_intern_atom_cookie_t *cs;
+  char                    **names;
+  int                       count;
+  int                       i;
+  double                    start;
+  double                    end;
+  double                    diff;
+
+  /* Xlib */
+  Display *disp;
+  Atom    *atoms_x;
+  double   diff_x;
+
+  c = xcb_connect (NULL, NULL);
+
+  count = 500;
+  atoms = (xcb_atom_t *)malloc (count * sizeof (atoms));
+  names = (char **)malloc (count * sizeof (char *));
+
+  /* init names */
+  for (i = 0; i < count; ++i) {
+    char buf[100];
+
+    sprintf (buf, "NAME%d", i);
+    names[i] = strdup (buf);
+  }
+
+  /* bad use */
+  start = get_time ();
+
+  for (i = 0; i < count; ++i)
+    atoms[i] = xcb_intern_atom_reply (c,
+                                      xcb_intern_atom (c,
+                                                       0,
+                                                       strlen(names[i]),
+                                                       names[i]),
+                                      NULL)->atom;
+
+  end = get_time ();
+  diff = end - start;
+  printf ("bad use time  : %f\n", diff);
+
+  /* good use */
+  start = get_time ();
+
+  cs = (xcb_intern_atom_cookie_t *) malloc (count * sizeof(xcb_intern_atom_cookie_t));
+  for(i = 0; i < count; ++i)
+    cs[i] = xcb_intern_atom (c, 0, strlen(names[i]), names[i]);
+
+  for(i = 0; i < count; ++i) {
+    xcb_intern_atom_reply_t *r;
+
+    r = xcb_intern_atom_reply(c, cs[i], 0);
+    if(r)
+      atoms[i] = r->atom;
+    free(r);
+  }
+
+  end = get_time ();
+  printf ("good use time : %f\n", end - start);
+  printf ("ratio         : %f\n", diff / (end - start));
+  diff = end - start;
+
+  /* free var */
+  free (atoms);
+  free (cs);
+
+  xcb_disconnect (c);
+
+  /* Xlib */
+  disp = XOpenDisplay (getenv("DISPLAY"));
+
+  atoms_x = (Atom *)malloc (count * sizeof (atoms_x));
+
+  start = get_time ();
+
+  for (i = 0; i < count; ++i)
+    atoms_x[i] = XInternAtom(disp, names[i], 0);
+
+  end = get_time ();
+  diff_x = end - start;
+  printf ("Xlib use time : %f\n", diff_x);
+  printf ("ratio         : %f\n", diff_x / diff);
+
+  free (atoms_x);
+  for (i = 0; i < count; ++i)
+    free (names[i]);
+  free (names);
+
+  XCloseDisplay (disp);
+
+  return 0;
+}
+\end{minted}
+  \item
+    \protect\hypertarget{gc}{}{The Graphic Context}
+
+    When we perform various drawing operations (graphics, text, etc), we
+    may specify various options for controlling how the data will be
+    drawn (what foreground and background colors to use, how line edges
+    will be connected, what font to use when drawing some text, etc). In
+    order to avoid the need to supply hundreds of parameters to each
+    drawing function, a graphical context structure is used. We set the
+    various drawing options in this structure, and then we pass a
+    pointer to this structure to any drawing routines. This is rather
+    handy, as we often need to perform several drawing requests with the
+    same options. Thus, we would initialize a graphical context, set the
+    desired options, and pass this structure to all drawing functions.
+
+    Note that graphic contexts have no client-side structure in XCB,
+    they're just XIDs. Xlib has a client-side structure because it
+    caches the GC contents so it can avoid making redundant requests,
+    but of course XCB doesn't do that.
+  \item
+    \protect\hypertarget{events}{}{Events}
+
+    A structure is used to pass events received from the X server. XCB
+    supports exactly the events specified in the protocol (33 events).
+    This structure contains the type of event received (including a bit
+    for whether it came from the server or another client), as well as
+    the data associated with the event (e.g. position on the screen
+    where the event was generated, mouse button associated with the
+    event, region of the screen associated with a "redraw" event, etc).
+    The way to read the event's data depends on the event type.
+  \end{enumerate}
+
+  \hfill\break
+\item
+  \protect\hypertarget{use}{}{Using XCB-based programs}\\
+
+  \begin{enumerate}
+  \item
+    \protect\hypertarget{inst}{}{Installation of XCB}
+
+    \textbf{TODO:} These instructions are out of date. Just reference
+    the \href{http://xcb.freedesktop.org/}{main XCB page} so we don't
+    have to maintain these instructions in more than one place.
+
+    To build XCB from source, you need to have installed at least:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      pkgconfig 0.15.0
+    \item
+      \href{http://www.gnu.org/software/automake/}{automake 1.7}
+    \item
+      \href{http://www.gnu.org/software/autoconf/}{autoconf 2.50}
+    \item
+      \href{http://www.check.org}{check}
+    \item
+      \href{http://xmlsoft.org/XSLT/}{xsltproc}
+    \item
+      \href{http://www.gnu.org/software/gperf/}{gperf 3.0.1}
+    \end{itemize}
+
+    You have to checkout in the git repository the following modules:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Xau from xlibs
+    \item
+      xcb-proto
+    \item
+      xcb
+    \end{itemize}
+
+    Note that xcb-proto exists only to install header files, so typing
+    'make' or 'make all' will produce the message "Nothing to be done
+    for 'all'". That's normal.
+  \item
+    \protect\hypertarget{comp}{}{Compiling XCB-based programs}
+
+    Compiling XCB-based programs requires linking them with the XCB
+    library. This is easily done thanks to pkgconfig:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines]{bash}
+gcc -Wall prog.c -o prog `pkg-config --cflags --libs xcb`
+\end{minted}
+  \end{enumerate}
+\item
+  \protect\hypertarget{openconn}{}{Opening and closing the connection to
+  an X server}
+
+  An X program first needs to open the connection to the X server. There
+  is a function that opens a connection. It requires the display name,
+  or NULL. In the latter case, the display name will be the one in the
+  environment variable DISPLAY.
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *xcb_connect (const char *displayname,
+                               int        *screenp);
+\end{minted}
+
+  The second parameter returns the screen number used for the
+  connection. The returned structure describes an XCB connection and is
+  opaque. Here is how the connection can be opened:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+#include <xcb/xcb.h>
+
+int
+main ()
+{
+  xcb_connection_t *c;
+
+  /* Open the connection to the X server. Use the DISPLAY environment variable as the default display name */
+  c = xcb_connect (NULL, NULL);
+
+  return 0;
+}
+\end{minted}
+
+  To close a connection, it suffices to use:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+void xcb_disconnect (xcb_connection_t *c);
+\end{minted}
+
+  Comparison Xlib/XCB
+
+  \begin{itemize}
+  \tightlist
+  \item
+    XOpenDisplay ()
+  \end{itemize}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    xcb\_connect ()
+  \end{itemize}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    XCloseDisplay ()
+  \end{itemize}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    xcb\_disconnect ()
+  \end{itemize}
+
+  \hfill\break
+\item
+  \protect\hypertarget{screen}{}{Checking basic information about a
+  connection}
+
+  Once we have opened a connection to an X server, we should check some
+  basic information about it: what screens it has, what is the size
+  (width and height) of the screen, how many colors it supports (black
+  and white ? grey scale ?, 256 colors ? more ?), and so on. We get such
+  information from the xcb\_screen\_t structure:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+typedef struct {
+    xcb_window_t   root;
+    xcb_colormap_t default_colormap;
+    uint32_t       white_pixel;
+    uint32_t       black_pixel;
+    uint32_t       current_input_masks;
+    uint16_t       width_in_pixels;
+    uint16_t       height_in_pixels;
+    uint16_t       width_in_millimeters;
+    uint16_t       height_in_millimeters;
+    uint16_t       min_installed_maps;
+    uint16_t       max_installed_maps;
+    xcb_visualid_t root_visual;
+    uint8_t        backing_stores;
+    uint8_t        save_unders;
+    uint8_t        root_depth;
+    uint8_t        allowed_depths_len;
+} xcb_screen_t;
+\end{minted}
+
+  We could retrieve the first screen of the connection by using the
+  following function:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_screen_iterator_t xcb_setup_roots_iterator (xcb_setup_t *R);
+\end{minted}
+
+  Here is a small program that shows how to use this function:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+#include <stdio.h>
+
+#include <xcb/xcb.h>
+
+int
+main ()
+{
+  xcb_connection_t     *c;
+  xcb_screen_t         *screen;
+  int                   screen_nbr;
+  xcb_screen_iterator_t iter;
+
+  /* Open the connection to the X server. Use the DISPLAY environment variable */
+  c = xcb_connect (NULL, &screen_nbr);
+
+  /* Get the screen #screen_nbr */
+  iter = xcb_setup_roots_iterator (xcb_get_setup (c));
+  for (; iter.rem; --screen_nbr, xcb_screen_next (&iter))
+    if (screen_nbr == 0) {
+      screen = iter.data;
+      break;
+    }
+
+  printf ("\n");
+  printf ("Informations of screen %ld:\n", screen->root);
+  printf ("  width.........: %d\n", screen->width_in_pixels);
+  printf ("  height........: %d\n", screen->height_in_pixels);
+  printf ("  white pixel...: %ld\n", screen->white_pixel);
+  printf ("  black pixel...: %ld\n", screen->black_pixel);
+  printf ("\n");
+
+  return 0;
+}
+\end{minted}
+\item
+  \protect\hypertarget{helloworld}{}{Creating a basic window - the
+  "hello world" program}
+
+  After we got some basic information about our screen, we can create
+  our first window. In the X Window System, a window is characterized by
+  an Id. So, in XCB, a window is of type:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+typedef uint32_t xcb_window_t;
+\end{minted}
+
+  We first ask for a new Id for our window, with this function:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_window_t xcb_generate_id(xcb_connection_t *c);
+\end{minted}
+
+  Then, XCB supplies the following function to create new windows:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_void_cookie_t xcb_create_window (xcb_connection_t *c,             /* Pointer to the xcb_connection_t structure */
+                                     uint8_t           depth,         /* Depth of the screen */
+                                     xcb_window_t      wid,           /* Id of the window */
+                                     xcb_window_t      parent,        /* Id of an existing window that should be the parent of the new window */
+                                     int16_t           x,             /* X position of the top-left corner of the window (in pixels) */
+                                     int16_t           y,             /* Y position of the top-left corner of the window (in pixels) */
+                                     uint16_t          width,         /* Width of the window (in pixels) */
+                                     uint16_t          height,        /* Height of the window (in pixels) */
+                                     uint16_t          border_width,  /* Width of the window's border (in pixels) */
+                                     uint16_t          _class,
+                                     xcb_visualid_t    visual,
+                                     uint32_t          value_mask,
+                                     const uint32_t   *value_list);
+\end{minted}
+
+  The fact that we created the window does not mean that it will be
+  drawn on screen. By default, newly created windows are not mapped on
+  the screen (they are invisible). In order to make our window visible,
+  we use the function {xcb\_map\_window()}, whose prototype is
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_void_cookie_t xcb_map_window (xcb_connection_t *c,
+                                  xcb_window_t      window);
+\end{minted}
+
+  Finally, here is a small program to create a window of size 150x150
+  pixels, positioned at the top-left corner of the screen:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+#include <unistd.h>      /* pause() */
+
+#include <xcb/xcb.h>
+
+int
+main ()
+{
+  xcb_connection_t *c;
+  xcb_screen_t     *screen;
+  xcb_window_t      win;
+
+  /* Open the connection to the X server */
+  c = xcb_connect (NULL, NULL);
+
+  /* Get the first screen */
+  screen = xcb_setup_roots_iterator (xcb_get_setup (c)).data;
+
+  /* Ask for our window's Id */
+  win = xcb_generate_id(c);
+
+  /* Create the window */
+  xcb_create_window (c,                             /* Connection          */
+                     XCB_COPY_FROM_PARENT,          /* depth (same as root)*/
+                     win,                           /* window Id           */
+                     screen->root,                  /* parent window       */
+                     0, 0,                          /* x, y                */
+                     150, 150,                      /* width, height       */
+                     10,                            /* border_width        */
+                     XCB_WINDOW_CLASS_INPUT_OUTPUT, /* class               */
+                     screen->root_visual,           /* visual              */
+                     0, NULL);                      /* masks, not used yet */
+
+  /* Map the window on the screen */
+  xcb_map_window (c, win);
+
+  /* Make sure commands are sent before we pause, so window is shown */
+  xcb_flush (c);
+
+  pause ();    /* hold client until Ctrl-C */
+
+  return 0;
+}
+\end{minted}
+
+  In this code, you see one more function - {xcb\_flush()}, not
+  explained yet. It is used to flush all the pending requests. More
+  precisely, there are 2 functions that do such things. The first one is
+  {xcb\_flush()}:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+int xcb_flush (xcb_connection_t *c);
+\end{minted}
+
+  This function flushes all pending requests to the X server (much like
+  the {fflush()} function is used to flush standard output). The second
+  function is {xcb\_aux\_sync()}:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+int xcb_aux_sync (xcb_connection_t *c);
+\end{minted}
+
+  This functions also flushes all pending requests to the X server, and
+  then waits until the X server finishing processing these requests. In
+  a normal program, this will not be necessary (we'll see why when we
+  get to write a normal X program), but for now, we put it there.
+
+  The window that is created by the above code has a non defined
+  background. This one can be set to a specific color, thanks to the two
+  last parameters of {xcb\_create\_window()}, which are not described
+  yet. See the subsections \protect\hyperlink{winconf}{Configuring a
+  window} or \protect\hyperlink{winconf}{Registering for event types
+  using event masks} for examples on how to use these parameters. In
+  addition, as no events are handled, you have to make a Ctrl-C to
+  interrupt the program.
+
+  \textbf{TODO}: one should tell what these functions return and about
+  the generic error
+
+  Comparison Xlib/XCB
+
+  \begin{itemize}
+  \tightlist
+  \item
+    XCreateWindow ()
+  \end{itemize}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    xcb\_generate\_id ()
+  \item
+    xcb\_create\_window ()
+  \end{itemize}
+
+  \hfill\break
+\item
+  \protect\hypertarget{drawing}{}{Drawing in a window}
+
+  Drawing in a window can be done using various graphical functions
+  (drawing pixels, lines, rectangles, etc). In order to draw in a
+  window, we first need to define various general drawing parameters
+  (what line width to use, which color to draw with, etc). This is done
+  using a graphical context.
+
+  \begin{enumerate}
+  \item
+    \protect\hypertarget{allocgc}{}{Allocating a Graphics Context}
+
+    As we said, a graphical context defines several attributes to be
+    used with the various drawing functions. For this, we define a
+    graphical context. We can use more than one graphical context with a
+    single window, in order to draw in multiple styles (different
+    colors, different line widths, etc). In XCB, a Graphics Context is,
+    as a window, characterized by an Id:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+typedef uint32_t xcb_gcontext_t;
+\end{minted}
+
+    We first ask the X server to attribute an Id to our graphic context
+    with this function:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_gcontext_t xcb_generate_id (xcb_connection_t *c);
+\end{minted}
+
+    Then, we set the attributes of the graphic context with this
+    function:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_void_cookie_t xcb_create_gc (xcb_connection_t *c,
+                                 xcb_gcontext_t    cid,
+                                 xcb_drawable_t    drawable,
+                                 uint32_t          value_mask,
+                                 const uint32_t   *value_list);
+\end{minted}
+
+    We give now an example on how to allocate a graphic context that
+    specifies that each drawing function that uses it will draw in
+    foreground with a black color.
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+#include <xcb/xcb.h>
+
+int
+main ()
+{
+  xcb_connection_t *c;
+  xcb_screen_t     *screen;
+  xcb_drawable_t    win;
+  xcb_gcontext_t    black;
+  uint32_t          mask;
+  uint32_t          value[1];
+
+  /* Open the connection to the X server and get the first screen */
+  c = xcb_connect (NULL, NULL);
+  screen = xcb_setup_roots_iterator (xcb_get_setup (c)).data;
+
+  /* Create a black graphic context for drawing in the foreground */
+  win = screen->root;
+  black = xcb_generate_id (c);
+  mask = XCB_GC_FOREGROUND;
+  value[0] = screen->black_pixel;
+  xcb_create_gc (c, black, win, mask, value);
+
+  return 0;
+}
+\end{minted}
+
+    Note should be taken regarding the role of "value\_mask" and
+    "value\_list" in the prototype of {xcb\_create\_gc()}. Since a
+    graphic context has many attributes, and since we often just want to
+    define a few of them, we need to be able to tell the
+    {xcb\_create\_gc()} which attributes we want to set. This is what
+    the "value\_mask" parameter is for. We then use the "value\_list"
+    parameter to specify actual values for the attribute we defined in
+    "value\_mask". Thus, for each constant used in "value\_list", we
+    will use the matching constant in "value\_mask". In this case, we
+    define a graphic context with one attribute: when drawing (a point,
+    a line, etc), the foreground color will be black. The rest of the
+    attributes of this graphic context will be set to their default
+    values.
+
+    See the next Subsection for more details.
+
+    Comparison Xlib/XCB
+
+    \begin{itemize}
+    \tightlist
+    \item
+      XCreateGC ()
+    \end{itemize}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      xcb\_generate\_id ()
+    \item
+      xcb\_create\_gc ()
+    \end{itemize}
+
+    \hfill\break
+  \item
+    \protect\hypertarget{changegc}{}{Changing the attributes of a
+    Graphics Context}
+
+    Once we have allocated a Graphic Context, we may need to change its
+    attributes (for example, changing the foreground color we use to
+    draw a line, or changing the attributes of the font we use to
+    display strings. See Subsections Drawing with a color and
+    \protect\hyperlink{assigningfont}{Assigning a Font to a Graphic
+    Context}). This is done by using this function:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_void_cookie_t xcb_change_gc (xcb_connection_t *c,           /* The XCB Connection */
+                                 xcb_gcontext_t    gc,          /* The Graphic Context */
+                                 uint32_t          value_mask,  /* Components of the Graphic Context that have to be set */
+                                 const uint32_t   *value_list); /* Value as specified by value_mask */
+\end{minted}
+
+    The {value\_mask} parameter could take any combination of these
+    masks from the xcb\_gc\_t enumeration:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      XCB\_GC\_FUNCTION
+    \item
+      XCB\_GC\_PLANE\_MASK
+    \item
+      XCB\_GC\_FOREGROUND
+    \item
+      XCB\_GC\_BACKGROUND
+    \item
+      XCB\_GC\_LINE\_WIDTH
+    \item
+      XCB\_GC\_LINE\_STYLE
+    \item
+      XCB\_GC\_CAP\_STYLE
+    \item
+      XCB\_GC\_JOIN\_STYLE
+    \item
+      XCB\_GC\_FILL\_STYLE
+    \item
+      XCB\_GC\_FILL\_RULE
+    \item
+      XCB\_GC\_TILE
+    \item
+      XCB\_GC\_STIPPLE
+    \item
+      XCB\_GC\_TILE\_STIPPLE\_ORIGIN\_X
+    \item
+      XCB\_GC\_TILE\_STIPPLE\_ORIGIN\_Y
+    \item
+      XCB\_GC\_FONT
+    \item
+      XCB\_GC\_SUBWINDOW\_MODE
+    \item
+      XCB\_GC\_GRAPHICS\_EXPOSURES
+    \item
+      XCB\_GC\_CLIP\_ORIGIN\_X
+    \item
+      XCB\_GC\_CLIP\_ORIGIN\_Y
+    \item
+      XCB\_GC\_CLIP\_MASK
+    \item
+      XCB\_GC\_DASH\_OFFSET
+    \item
+      XCB\_GC\_DASH\_LIST
+    \item
+      XCB\_GC\_ARC\_MODE
+    \end{itemize}
+
+    It is possible to set several attributes at the same time (for
+    example setting the attributes of a font and the color which will be
+    used to display a string), by OR'ing these values in {value\_mask}.
+    Then {value\_list} has to be an array which lists the value for the
+    respective attributes. \textbf{These values must be in the same
+    order as masks listed above.} See Subsection Drawing with a color to
+    have an example.
+
+    \textbf{TODO}: set the links of the 3 subsections, once they will be
+    written :)
+
+    \textbf{TODO}: give an example which sets several attributes.
+  \item
+    \protect\hypertarget{drawingprim}{}{Drawing primitives: point, line,
+    box, circle,...}
+
+    After we have created a Graphic Context, we can draw on a window
+    using this Graphic Context, with a set of XCB functions,
+    collectively called "drawing primitives". Let see how they are used.
+
+    To draw a point, or several points, we use
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_void_cookie_t xcb_poly_point (xcb_connection_t  *c,               /* The connection to the X server */
+                                  uint8_t            coordinate_mode, /* Coordinate mode, usually set to XCB_COORD_MODE_ORIGIN */
+                                  xcb_drawable_t     drawable,        /* The drawable on which we want to draw the point(s) */
+                                  xcb_gcontext_t     gc,              /* The Graphic Context we use to draw the point(s) */
+                                  uint32_t           points_len,      /* The number of points */
+                                  const xcb_point_t *points);         /* An array of points */
+\end{minted}
+
+    The {coordinate\_mode} parameter specifies the coordinate mode.
+    Available values are
+
+    \begin{itemize}
+    \tightlist
+    \item
+      {XCB\_COORD\_MODE\_ORIGIN}
+    \item
+      {XCB\_COORD\_MODE\_PREVIOUS}
+    \end{itemize}
+
+    If XCB\_COORD\_MODE\_PREVIOUS is used, then all points but the first
+    one are relative to the immediately previous point.
+
+    The {xcb\_point\_t} type is just a structure with two fields (the
+    coordinates of the point):
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+typedef struct {
+    int16_t x;
+    int16_t y;
+} xcb_point_t;
+\end{minted}
+
+    You could see an example in xpoints.c. \textbf{TODO} Set the link.
+
+    To draw a line, or a polygonal line, we use
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_void_cookie_t xcb_poly_line (xcb_connection_t  *c,               /* The connection to the X server */
+                                 uint8_t            coordinate_mode, /* Coordinate mode, usually set to XCB_COORD_MODE_ORIGIN */
+                                 xcb_drawable_t     drawable,        /* The drawable on which we want to draw the line(s) */
+                                 xcb_gcontext_t     gc,              /* The Graphic Context we use to draw the line(s) */
+                                 uint32_t           points_len,      /* The number of points in the polygonal line */
+                                 const xcb_point_t *points);         /* An array of points */
+\end{minted}
+
+    This function will draw the line between the first and the second
+    points, then the line between the second and the third points, and
+    so on.
+
+    To draw a segment, or several segments, we use
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_void_cookie_t xcb_poly_segment (xcb_connection_t    *c,              /* The connection to the X server */
+                                    xcb_drawable_t       drawable,       /* The drawable on which we want to draw the segment(s) */
+                                    xcb_gcontext_t       gc,             /* The Graphic Context we use to draw the segment(s) */
+                                    uint32_t             segments_len,   /* The number of segments */
+                                    const xcb_segment_t *segments);      /* An array of segments */
+\end{minted}
+
+    The {xcb\_segment\_t} type is just a structure with four fields (the
+    coordinates of the two points that define the segment):
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+typedef struct {
+    int16_t x1;
+    int16_t y1;
+    int16_t x2;
+    int16_t y2;
+} xcb_segment_t;
+\end{minted}
+
+    To draw a rectangle, or several rectangles, we use
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_void_cookie_t xcb_poly_rectangle (xcb_connection_t      *c,              /* The connection to the X server */
+                                      xcb_drawable_t         drawable,       /* The drawable on which we want to draw the rectangle(s) */
+                                      xcb_gcontext_t         gc,             /* The Graphic Context we use to draw the rectangle(s) */
+                                      uint32_t               rectangles_len, /* The number of rectangles */
+                                      const xcb_rectangle_t *rectangles);    /* An array of rectangles */
+\end{minted}
+
+    The {xcb\_rectangle\_t} type is just a structure with four fields
+    (the coordinates of the top-left corner of the rectangle, and its
+    width and height):
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+typedef struct {
+    int16_t  x;
+    int16_t  y;
+    uint16_t width;
+    uint16_t height;
+} xcb_rectangle_t;
+\end{minted}
+
+    To draw an elliptical arc, or several elliptical arcs, we use
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_void_cookie_t xcb_poly_arc (xcb_connection_t *c,          /* The connection to the X server */
+                                xcb_drawable_t    drawable,   /* The drawable on which we want to draw the arc(s) */
+                                xcb_gcontext_t    gc,         /* The Graphic Context we use to draw the arc(s) */
+                                uint32_t          arcs_len,   /* The number of arcs */
+                                const xcb_arc_t  *arcs);      /* An array of arcs */
+\end{minted}
+
+    The {xcb\_arc\_t} type is a structure with six fields:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+typedef struct {
+    int16_t  x;       /* Top left x coordinate of the rectangle surrounding the ellipse */
+    int16_t  y;       /* Top left y coordinate of the rectangle surrounding the ellipse */
+    uint16_t width;   /* Width of the rectangle surrounding the ellipse */
+    uint16_t height;  /* Height of the rectangle surrounding the ellipse */
+    int16_t  angle1;  /* Angle at which the arc begins */
+    int16_t  angle2;  /* Angle at which the arc ends */
+} xcb_arc_t;
+\end{minted}
+
+    Note: the angles are expressed in units of 1/64 of a degree, so to
+    have an angle of 90 degrees, starting at 0, {angle1 = 0} and {angle2
+    = 90 \textless\textless{} 6}. Positive angles indicate
+    counterclockwise motion, while negative angles indicate clockwise
+    motion.
+
+    The corresponding function which fill inside the geometrical object
+    are listed below, without further explanation, as they are used as
+    the above functions.
+
+    To Fill a polygon defined by the points given as arguments , we use
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_void_cookie_t xcb_fill_poly (xcb_connection_t  *c,
+                                 xcb_drawable_t     drawable,
+                                 xcb_gcontext_t     gc,
+                                 uint8_t            shape,
+                                 uint8_t            coordinate_mode,
+                                 uint32_t           points_len,
+                                 const xcb_point_t *points);
+\end{minted}
+
+    The {shape} parameter specifies a shape that helps the server to
+    improve performance. Available values are
+
+    \begin{itemize}
+    \tightlist
+    \item
+      {XCB\_POLY\_SHAPE\_COMPLEX}
+    \item
+      {XCB\_POLY\_SHAPE\_NONCONVEX}
+    \item
+      {XCB\_POLY\_SHAPE\_CONVEX}
+    \end{itemize}
+
+    To fill one or several rectangles, we use
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_void_cookie_t xcb_poly_fill_rectangle (xcb_connection_t      *c,
+                                           xcb_drawable_t         drawable,
+                                           xcb_gcontext_t         gc,
+                                           uint32_t               rectangles_len,
+                                           const xcb_rectangle_t *rectangles);
+\end{minted}
+
+    To fill one or several arcs, we use
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_void_cookie_t xcb_poly_fill_arc (xcb_connection_t *c,
+                                     xcb_drawable_t    drawable,
+                                     xcb_gcontext_t    gc,
+                                     uint32_t          arcs_len,
+                                     const xcb_arc_t  *arcs);
+\end{minted}
+
+    \hfill\break
+    \protect\hypertarget{points.c}{}{}
+
+    To illustrate these functions, here is an example that draws four
+    points, a polygonal line, two segments, two rectangles and two arcs.
+    Remark that we use events for the first time, as an introduction to
+    the next section.
+
+    \textbf{TODO:} Use screen-\textgreater root\_depth for depth
+    parameter.
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+#include <stdlib.h>
+#include <stdio.h>
+
+#include <xcb/xcb.h>
+
+int
+main ()
+{
+  xcb_connection_t    *c;
+  xcb_screen_t        *screen;
+  xcb_drawable_t       win;
+  xcb_gcontext_t       foreground;
+  xcb_generic_event_t *e;
+  uint32_t             mask = 0;
+  uint32_t             values[2];
+
+  /* geometric objects */
+  xcb_point_t          points[] = {
+    {10, 10},
+    {10, 20},
+    {20, 10},
+    {20, 20}};
+
+  xcb_point_t          polyline[] = {
+    {50, 10},
+    { 5, 20},     /* rest of points are relative */
+    {25,-20},
+    {10, 10}};
+
+  xcb_segment_t        segments[] = {
+    {100, 10, 140, 30},
+    {110, 25, 130, 60}};
+
+  xcb_rectangle_t      rectangles[] = {
+    { 10, 50, 40, 20},
+    { 80, 50, 10, 40}};
+
+  xcb_arc_t            arcs[] = {
+    {10, 100, 60, 40, 0, 90 << 6},
+    {90, 100, 55, 40, 0, 270 << 6}};
+
+  /* Open the connection to the X server */
+  c = xcb_connect (NULL, NULL);
+
+  /* Get the first screen */
+  screen = xcb_setup_roots_iterator (xcb_get_setup (c)).data;
+
+  /* Create black (foreground) graphic context */
+  win = screen->root;
+
+  foreground = xcb_generate_id (c);
+  mask = XCB_GC_FOREGROUND | XCB_GC_GRAPHICS_EXPOSURES;
+  values[0] = screen->black_pixel;
+  values[1] = 0;
+  xcb_create_gc (c, foreground, win, mask, values);
+
+  /* Ask for our window's Id */
+  win = xcb_generate_id(c);
+
+  /* Create the window */
+  mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
+  values[0] = screen->white_pixel;
+  values[1] = XCB_EVENT_MASK_EXPOSURE;
+  xcb_create_window (c,                             /* Connection          */
+                     XCB_COPY_FROM_PARENT,          /* depth               */
+                     win,                           /* window Id           */
+                     screen->root,                  /* parent window       */
+                     0, 0,                          /* x, y                */
+                     150, 150,                      /* width, height       */
+                     10,                            /* border_width        */
+                     XCB_WINDOW_CLASS_INPUT_OUTPUT, /* class               */
+                     screen->root_visual,           /* visual              */
+                     mask, values);                 /* masks */
+
+  /* Map the window on the screen */
+  xcb_map_window (c, win);
+
+
+  /* We flush the request */
+  xcb_flush (c);
+
+  while ((e = xcb_wait_for_event (c))) {
+    switch (e->response_type & ~0x80) {
+    case XCB_EXPOSE: {
+      /* We draw the points */
+      xcb_poly_point (c, XCB_COORD_MODE_ORIGIN, win, foreground, 4, points);
+
+      /* We draw the polygonal line */
+      xcb_poly_line (c, XCB_COORD_MODE_PREVIOUS, win, foreground, 4, polyline);
+
+      /* We draw the segements */
+      xcb_poly_segment (c, win, foreground, 2, segments);
+
+      /* We draw the rectangles */
+      xcb_poly_rectangle (c, win, foreground, 2, rectangles);
+
+      /* We draw the arcs */
+      xcb_poly_arc (c, win, foreground, 2, arcs);
+
+      /* We flush the request */
+      xcb_flush (c);
+
+      break;
+    }
+    default: {
+      /* Unknown event type, ignore it */
+      break;
+    }
+    }
+    /* Free the Generic Event */
+    free (e);
+  }
+
+  return 0;
+}
+\end{minted}
+  \end{enumerate}
+\item
+  \protect\hypertarget{xevents}{}{X Events}
+
+  In an X program, everything is driven by events. Event painting on the
+  screen is sometimes done as a response to an event (an {Expose}
+  event). If part of a program's window that was hidden, gets exposed
+  (e.g. the window was raised above other widows), the X server will
+  send an "expose" event to let the program know it should repaint that
+  part of the window. User input (key presses, mouse movement, etc) is
+  also received as a set of events.
+
+  \begin{enumerate}
+  \item
+    \protect\hypertarget{register}{}{Registering for event types using
+    event masks}
+
+    During the creation of a window, you should give it what kind of
+    events it wishes to receive. Thus, you may register for various
+    mouse (also called pointer) events, keyboard events, expose events,
+    and so on. This is done for optimizing the server-to-client
+    connection (i.e. why send a program (that might even be running at
+    the other side of the globe) an event it is not interested in ?)
+
+    In XCB, you use the "value\_mask" and "value\_list" data in the
+    {xcb\_create\_window()} function to register for events. Here is how
+    we register for {Expose} event when creating a window:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+  mask = XCB_CW_EVENT_MASK;
+  valwin[0] = XCB_EVENT_MASK_EXPOSURE;
+  win = xcb_generate_id (c);
+  xcb_create_window (c, depth, win, root->root,
+                     0, 0, 150, 150, 10,
+                     XCB_WINDOW_CLASS_INPUT_OUTPUT, root->root_visual,
+                     mask, valwin);
+\end{minted}
+
+    {XCB\_EVENT\_MASK\_EXPOSURE} is a constant defined in the
+    xcb\_event\_mask\_t enumeration in the "xproto.h" header file. If we
+    wanted to register for several event types, we can logically "or"
+    them, as follows:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+  mask = XCB_CW_EVENT_MASK;
+  valwin[0] = XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_BUTTON_PRESS;
+  win = xcb_generate_id (c);
+  xcb_create_window (c, depth, win, root->root,
+                     0, 0, 150, 150, 10,
+                     XCB_WINDOW_CLASS_INPUT_OUTPUT, root->root_visual,
+                     mask, valwin);
+\end{minted}
+
+    This registers for {Expose} events as well as for mouse button
+    presses inside the created window. You should note that a mask may
+    represent several event sub-types.
+
+    The values that a mask could take are given by the {xcb\_cw\_t}
+    enumeration:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+typedef enum {
+    XCB_CW_BACK_PIXMAP       = 1L<<0,
+    XCB_CW_BACK_PIXEL        = 1L<<1,
+    XCB_CW_BORDER_PIXMAP     = 1L<<2,
+    XCB_CW_BORDER_PIXEL      = 1L<<3,
+    XCB_CW_BIT_GRAVITY       = 1L<<4,
+    XCB_CW_WIN_GRAVITY       = 1L<<5,
+    XCB_CW_BACKING_STORE     = 1L<<6,
+    XCB_CW_BACKING_PLANES    = 1L<<7,
+    XCB_CW_BACKING_PIXEL     = 1L<<8,
+    XCB_CW_OVERRIDE_REDIRECT = 1L<<9,
+    XCB_CW_SAVE_UNDER        = 1L<<10,
+    XCB_CW_EVENT_MASK        = 1L<<11,
+    XCB_CW_DONT_PROPAGATE    = 1L<<12,
+    XCB_CW_COLORMAP          = 1L<<13,
+    XCB_CW_CURSOR            = 1L<<14
+} xcb_cw_t;
+\end{minted}
+
+    Note: we must be careful when setting the values of the valwin
+    parameter, as they have to follow the order the {xcb\_cw\_t}
+    enumeration. Here is an example:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+  mask = XCB_CW_EVENT_MASK | XCB_CW_BACK_PIXMAP;
+  valwin[0] = XCB_NONE;                                              /* for XCB_CW_BACK_PIXMAP (whose value is 1)     */
+  valwin[1] = XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_BUTTON_PRESS; /* for XCB_CW_EVENT_MASK, whose value (2048)     */
+                                                                     /* is greater than the one of XCB_CW_BACK_PIXMAP */
+\end{minted}
+
+    If the window has already been created, we can use the
+    {xcb\_change\_window\_attributes()} function to set the events that
+    the window will receive. The subsection
+    \protect\hyperlink{winconf}{Configuring a window} shows its
+    prototype. As an example, here is a piece of code that configures
+    the window to receive the {Expose} and {ButtonPress} events:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+const static uint32_t values[] = { XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_BUTTON_PRESS };
+
+/* The connection c and the window win are supposed to be defined */
+
+xcb_change_window_attributes (c, win, XCB_CW_EVENT_MASK, values);
+\end{minted}
+
+    Note: A common bug programmers do is adding code to handle new event
+    types in their program, while forgetting to add the masks for these
+    events in the creation of the window. Such a programmer then should
+    sit down for hours debugging his program, wondering "Why doesn't my
+    program notice that I released the button?", only to find that they
+    registered for button press events but not for button release
+    events.
+  \item
+    \protect\hypertarget{loop}{}{Receiving events: writing the events
+    loop}
+
+    After we have registered for the event types we are interested in,
+    we need to enter a loop of receiving events and handling them. There
+    are two ways to receive events: a blocking way and a non-blocking
+    way:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      {xcb\_wait\_for\_event (xcb\_connection\_t *c)} is the blocking
+      way. It waits (so blocks...) until an event is queued in the X
+      server. Then it retrieves it into a newly allocated structure (it
+      dequeues it from the queue) and returns it. This structure has to
+      be freed. The function returns {NULL} if an error occurs.\\
+    \item
+      {xcb\_poll\_for\_event (xcb\_connection\_t *c, int *error)} is the
+      non-blocking way. It looks at the event queue and returns (and
+      dequeues too) an existing event into a newly allocated structure.
+      This structure has to be freed. It returns {NULL} if there is no
+      event. If an error occurs, the parameter {error} will be filled
+      with the error status.
+    \end{itemize}
+
+    There are various ways to write such a loop. We present two ways to
+    write such a loop, with the two functions above. The first one uses
+    {xcb\_wait\_for\_event\_t}, which is similar to an event Xlib loop
+    using only {XNextEvent}:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+  xcb_generic_event_t *e;
+
+  while ((e = xcb_wait_for_event (c))) {
+    switch (e->response_type & ~0x80) {
+    case XCB_EXPOSE: {
+      /* Handle the Expose event type */
+      xcb_expose_event_t *ev = (xcb_expose_event_t *)e;
+
+      /* ... */
+
+      break;
+    }
+    case XCB_BUTTON_PRESS: {
+      /* Handle the ButtonPress event type */
+      xcb_button_press_event_t *ev = (xcb_button_press_event_t *)e;
+
+      /* ... */
+
+      break;
+    }
+    default: {
+      /* Unknown event type, ignore it */
+      break;
+    }
+    }
+    /* Free the Generic Event */
+    free (e);
+  }
+\end{minted}
+
+    You will certainly want to use
+    {xcb\_poll\_for\_event(xcb\_connection\_t *c, int *error)} if, in
+    Xlib, you use {XPending} or {XCheckMaskEvent}:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+  while (XPending (display)) {
+    XEvent ev;
+
+    XNextEvent(d, &ev);
+
+    /* Manage your event */
+  }
+\end{minted}
+
+    Such a loop in XCB looks like:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+  xcb_generic_event_t *ev;
+
+  while ((ev = xcb_poll_for_event (conn, 0))) {
+    /* Manage your event */
+  }
+\end{minted}
+
+    The events are managed in the same way as with
+    {xcb\_wait\_for\_event\_t}. Obviously, we will need to give the user
+    some way of terminating the program. This is usually done by
+    handling a special "quit" event, as we will soon see.
+
+    Comparison Xlib/XCB
+
+    \begin{itemize}
+    \tightlist
+    \item
+      XNextEvent ()
+    \end{itemize}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      xcb\_wait\_for\_event ()
+    \end{itemize}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      XPending ()
+    \item
+      XCheckMaskEvent ()
+    \end{itemize}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      xcb\_poll\_for\_event ()
+    \end{itemize}
+
+    \hfill\break
+  \item
+    \protect\hypertarget{expose}{}{Expose events}
+
+    The {Expose} event is one of the most basic (and most used) events
+    an application may receive. It will be sent to us in one of several
+    cases:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      A window that covered part of our window has moved away, exposing
+      part (or all) of our window.
+    \item
+      Our window was raised above other windows.
+    \item
+      Our window mapped for the first time.
+    \item
+      Our window was de-iconified.
+    \end{itemize}
+
+    You should note the implicit assumption hidden here: the contents of
+    our window is lost when it is being obscured (covered) by either
+    windows. One may wonder why the X server does not save this
+    contents. The answer is: to save memory. After all, the number of
+    windows on a display at a given time may be very large, and storing
+    the contents of all of them might require a lot of memory. Actually,
+    there is a way to tell the X server to store the contents of a
+    window in special cases, as we will see later.
+
+    When we get an {Expose} event, we should take the event's data from
+    the members of the following structure:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+typedef struct {
+    uint8_t      response_type; /* The type of the event, here it is XCB_EXPOSE */
+    uint8_t      pad0;
+    uint16_t     sequence;
+    xcb_window_t window;        /* The Id of the window that receives the event (in case */
+                                /* our application registered for events on several windows */
+    uint16_t     x;             /* The x coordinate of the top-left part of the window that needs to be redrawn */
+    uint16_t     y;             /* The y coordinate of the top-left part of the window that needs to be redrawn */
+    uint16_t     width;         /* The width of the part of the window that needs to be redrawn */
+    uint16_t     height;        /* The height of the part of the window that needs to be redrawn */
+    uint16_t     count;
+} xcb_expose_event_t;
+\end{minted}
+  \item
+    \protect\hypertarget{userinput}{}{Getting user input}
+
+    User input traditionally comes from two sources: the mouse and the
+    keyboard. Various event types exist to notify us of user input (a
+    key being presses on the keyboard, a key being released on the
+    keyboard, the mouse moving over our window, the mouse entering (or
+    leaving) our window, and so on.
+
+    \begin{enumerate}
+    \item
+      \protect\hypertarget{mousepressrelease}{}{Mouse button press and
+      release events}
+
+      The first event type we will deal with is a mouse button-press (or
+      button-release) event in our window. In order to register to such
+      an event type, we should add one (or more) of the following masks
+      when we create our window:
+
+      \begin{itemize}
+      \tightlist
+      \item
+        {XCB\_EVENT\_MASK\_BUTTON\_PRESS}: notify us of any button that
+        was pressed in one of our windows.
+      \item
+        {XCB\_EVENT\_MASK\_BUTTON\_RELEASE}: notify us of any button
+        that was released in one of our windows.
+      \end{itemize}
+
+      The structure to be checked for in our events loop is the same for
+      these two events, and is the following:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+typedef struct {
+    uint8_t         response_type; /* The type of the event, here it is xcb_button_press_event_t or xcb_button_release_event_t */
+    xcb_button_t    detail;
+    uint16_t        sequence;
+    xcb_timestamp_t time;          /* Time, in milliseconds the event took place in */
+    xcb_window_t    root;
+    xcb_window_t    event;
+    xcb_window_t    child;
+    int16_t         root_x;
+    int16_t         root_y;
+    int16_t         event_x;       /* The x coordinate where the mouse has been pressed in the window */
+    int16_t         event_y;       /* The y coordinate where the mouse has been pressed in the window */
+    uint16_t        state;         /* A mask of the buttons (or keys) during the event */
+    uint8_t         same_screen;
+} xcb_button_press_event_t;
+
+typedef xcb_button_press_event_t xcb_button_release_event_t;
+\end{minted}
+
+      The {time} field may be used to calculate "double-click"
+      situations by an application (e.g. if the mouse button was clicked
+      two times in a duration shorter than a given amount of time,
+      assume this was a double click).
+
+      The {state} field is a mask of the buttons held down during the
+      event. It is a bitwise OR of any of the following (from the
+      xcb\_button\_mask\_t and xcb\_mod\_mask\_t enumerations):
+
+      \begin{itemize}
+      \tightlist
+      \item
+        {XCB\_BUTTON\_MASK\_1}
+      \item
+        {XCB\_BUTTON\_MASK\_2}
+      \item
+        {XCB\_BUTTON\_MASK\_3}
+      \item
+        {XCB\_BUTTON\_MASK\_4}
+      \item
+        {XCB\_BUTTON\_MASK\_5}
+      \item
+        {XCB\_MOD\_MASK\_SHIFT}
+      \item
+        {XCB\_MOD\_MASK\_LOCK}
+      \item
+        {XCB\_MOD\_MASK\_CONTROL}
+      \item
+        {XCB\_MOD\_MASK\_1}
+      \item
+        {XCB\_MOD\_MASK\_2}
+      \item
+        {XCB\_MOD\_MASK\_3}
+      \item
+        {XCB\_MOD\_MASK\_4}
+      \item
+        {XCB\_MOD\_MASK\_5}
+      \end{itemize}
+
+      Their names are self explanatory, where the first 5 refer to the
+      mouse buttons that are being pressed, while the rest refer to
+      various "special keys" that are being pressed (Mod1 is usually the
+      'Alt' key or the 'Meta' key).
+
+      \textbf{TODO:} Problem: it seems that the state does not change
+      when clicking with various buttons.
+    \item
+      \protect\hypertarget{mousemvnt}{}{Mouse movement events}
+
+      Similar to mouse button press and release events, we also can be
+      notified of various mouse movement events. These can be split into
+      two families. One is of mouse pointer movement while no buttons
+      are pressed, and the second is a mouse pointer motion while one
+      (or more) of the buttons are pressed (this is sometimes called "a
+      mouse drag operation", or just "dragging"). The following event
+      masks may be added during the creation of our window:
+
+      \begin{itemize}
+      \tightlist
+      \item
+        {XCB\_EVENT\_MASK\_POINTER\_MOTION}: events of the pointer
+        moving in one of the windows controlled by our application,
+        while no mouse button is held pressed.
+      \item
+        {XCB\_EVENT\_MASK\_BUTTON\_MOTION}: Events of the pointer moving
+        while one or more of the mouse buttons is held pressed.
+      \item
+        {XCB\_EVENT\_MASK\_BUTTON\_1\_MOTION}: same as
+        {XCB\_EVENT\_MASK\_BUTTON\_MOTION}, but only when the 1st mouse
+        button is held pressed.
+      \item
+        {XCB\_EVENT\_MASK\_BUTTON\_2\_MOTION},
+        {XCB\_EVENT\_MASK\_BUTTON\_3\_MOTION},
+        {XCB\_EVENT\_MASK\_BUTTON\_4\_MOTION},
+        {XCB\_EVENT\_MASK\_BUTTON\_5\_MOTION}: same as
+        {XCB\_EVENT\_MASK\_BUTTON\_1\_MOTION}, but respectively for 2nd,
+        3rd, 4th and 5th mouse button.
+      \end{itemize}
+
+      The structure to be checked for in our events loop is the same for
+      these events, and is the following:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+typedef struct {
+    uint8_t         response_type; /* The type of the event */
+    uint8_t         detail;
+    uint16_t        sequence;
+    xcb_timestamp_t time;          /* Time, in milliseconds the event took place in */
+    xcb_window_t    root;
+    xcb_window_t    event;
+    xcb_window_t    child;
+    int16_t         root_x;
+    int16_t         root_y;
+    int16_t         event_x;       /* The x coordinate of the mouse when the  event was generated */
+    int16_t         event_y;       /* The y coordinate of the mouse when the  event was generated */
+    uint16_t        state;         /* A mask of the buttons (or keys) during the event */
+    uint8_t         same_screen;
+} xcb_motion_notify_event_t;
+\end{minted}
+    \item
+      \protect\hypertarget{mouseenter}{}{Mouse pointer enter and leave
+      events}
+
+      Another type of event that applications might be interested in, is
+      a mouse pointer entering a window the program controls, or leaving
+      such a window. Some programs use these events to show the user
+      that the application is now in focus. In order to register for
+      such an event type, we should add one (or more) of the following
+      masks when we create our window:
+
+      \begin{itemize}
+      \tightlist
+      \item
+        {xcb\_event\_enter\_window\_t}: notify us when the mouse pointer
+        enters any of our controlled windows.
+      \item
+        {xcb\_event\_leave\_window\_t}: notify us when the mouse pointer
+        leaves any of our controlled windows.
+      \end{itemize}
+
+      The structure to be checked for in our events loop is the same for
+      these two events, and is the following:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+typedef struct {
+    uint8_t         response_type; /* The type of the event */
+    uint8_t         detail;
+    uint16_t        sequence;
+    xcb_timestamp_t time;          /* Time, in milliseconds the event took place in */
+    xcb_window_t    root;
+    xcb_window_t    event;
+    xcb_window_t    child;
+    int16_t         root_x;
+    int16_t         root_y;
+    int16_t         event_x;       /* The x coordinate of the mouse when the  event was generated */
+    int16_t         event_y;       /* The y coordinate of the mouse when the  event was generated */
+    uint16_t        state;         /* A mask of the buttons (or keys) during the event */
+    uint8_t         mode;          /* The number of mouse button that was clicked */
+    uint8_t         same_screen_focus;
+} xcb_enter_notify_event_t;
+
+typedef xcb_enter_notify_event_t xcb_leave_notify_event_t;
+\end{minted}
+    \item
+      \protect\hypertarget{focus}{}{The keyboard focus}
+
+      There may be many windows on a screen, but only a single keyboard
+      attached to them. How does the X server then know which window
+      should be sent a given keyboard input ? This is done using the
+      keyboard focus. Only a single window on the screen may have the
+      keyboard focus at a given time. There is a XCB function that
+      allows a program to set the keyboard focus to a given window. The
+      user can usually set the keyboard focus using the window manager
+      (often by clicking on the title bar of the desired window). Once
+      our window has the keyboard focus, every key press or key release
+      will cause an event to be sent to our program (if it regsitered
+      for these event types...).
+    \item
+      \protect\hypertarget{keypress}{}{Keyboard press and release
+      events}
+
+      If a window controlled by our program currently holds the keyboard
+      focus, it can receive key press and key release events. So, we
+      should add one (or more) of the following masks when we create our
+      window:
+
+      \begin{itemize}
+      \tightlist
+      \item
+        {XCB\_EVENT\_MASK\_KEY\_PRESS}: notify us when a key was pressed
+        while any of our controlled windows had the keyboard focus.
+      \item
+        {XCB\_EVENT\_MASK\_KEY\_RELEASE}: notify us when a key was
+        released while any of our controlled windows had the keyboard
+        focus.
+      \end{itemize}
+
+      The structure to be checked for in our events loop is the same for
+      these two events, and is the following:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+typedef struct {
+    uint8_t         response_type; /* The type of the event */
+    xcb_keycode_t   detail;
+    uint16_t        sequence;
+    xcb_timestamp_t time;          /* Time, in milliseconds the event took place in */
+    xcb_window_t    root;
+    xcb_window_t    event;
+    xcb_window_t    child;
+    int16_t         root_x;
+    int16_t         root_y;
+    int16_t         event_x;
+    int16_t         event_y;
+    uint16_t        state;
+    uint8_t         same_screen;
+} xcb_key_press_event_t;
+
+typedef xcb_key_press_event_t xcb_key_release_event_t;
+\end{minted}
+
+      The {detail} field refers to the physical key on the keyboard.
+
+      \textbf{TODO:} Talk about getting the ASCII code from the key
+      code.
+    \end{enumerate}
+  \item
+    \protect\hypertarget{eventex}{}{X events: a complete example}
+
+    As an example for handling events, we show a program that creates a
+    window, enters an events loop and checks for all the events
+    described above, and writes on the terminal the relevant
+    characteristics of the event. With this code, it should be easy to
+    add drawing operations, like those which have been described above.
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+#include <stdlib.h>
+#include <stdio.h>
+
+#include <xcb/xcb.h>
+
+void
+print_modifiers (uint32_t mask)
+{
+  const char **mod, *mods[] = {
+    "Shift", "Lock", "Ctrl", "Alt",
+    "Mod2", "Mod3", "Mod4", "Mod5",
+    "Button1", "Button2", "Button3", "Button4", "Button5"
+  };
+  printf ("Modifier mask: ");
+  for (mod = mods ; mask; mask >>= 1, mod++)
+    if (mask & 1)
+      printf(*mod);
+  putchar ('\n');
+}
+
+int
+main ()
+{
+  xcb_connection_t    *c;
+  xcb_screen_t        *screen;
+  xcb_window_t         win;
+  xcb_generic_event_t *e;
+  uint32_t             mask = 0;
+  uint32_t             values[2];
+
+  /* Open the connection to the X server */
+  c = xcb_connect (NULL, NULL);
+
+  /* Get the first screen */
+  screen = xcb_setup_roots_iterator (xcb_get_setup (c)).data;
+
+  /* Ask for our window's Id */
+  win = xcb_generate_id (c);
+
+  /* Create the window */
+  mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
+  values[0] = screen->white_pixel;
+  values[1] = XCB_EVENT_MASK_EXPOSURE       | XCB_EVENT_MASK_BUTTON_PRESS   |
+              XCB_EVENT_MASK_BUTTON_RELEASE | XCB_EVENT_MASK_POINTER_MOTION |
+              XCB_EVENT_MASK_ENTER_WINDOW   | XCB_EVENT_MASK_LEAVE_WINDOW   |
+              XCB_EVENT_MASK_KEY_PRESS      | XCB_EVENT_MASK_KEY_RELEASE;
+  xcb_create_window (c,                             /* Connection          */
+                     0,                             /* depth               */
+                     win,                           /* window Id           */
+                     screen->root,                  /* parent window       */
+                     0, 0,                          /* x, y                */
+                     150, 150,                      /* width, height       */
+                     10,                            /* border_width        */
+                     XCB_WINDOW_CLASS_INPUT_OUTPUT, /* class               */
+                     screen->root_visual,           /* visual              */
+                     mask, values);                 /* masks */
+
+  /* Map the window on the screen */
+  xcb_map_window (c, win);
+
+  xcb_flush (c);
+
+  while ((e = xcb_wait_for_event (c))) {
+    switch (e->response_type & ~0x80) {
+    case XCB_EXPOSE: {
+      xcb_expose_event_t *ev = (xcb_expose_event_t *)e;
+
+      printf ("Window %ld exposed. Region to be redrawn at location (%d,%d), with dimension (%d,%d)\n",
+              ev->window, ev->x, ev->y, ev->width, ev->height);
+      break;
+    }
+    case XCB_BUTTON_PRESS: {
+      xcb_button_press_event_t *ev = (xcb_button_press_event_t *)e;
+      print_modifiers(ev->state);
+
+      switch (ev->detail) {
+      case 4:
+        printf ("Wheel Button up in window %ld, at coordinates (%d,%d)\n",
+                ev->event, ev->event_x, ev->event_y);
+        break;
+      case 5:
+        printf ("Wheel Button down in window %ld, at coordinates (%d,%d)\n",
+                ev->event, ev->event_x, ev->event_y);
+        break;
+      default:
+        printf ("Button %d pressed in window %ld, at coordinates (%d,%d)\n",
+                ev->detail, ev->event, ev->event_x, ev->event_y);
+      }
+      break;
+    }
+    case XCB_BUTTON_RELEASE: {
+      xcb_button_release_event_t *ev = (xcb_button_release_event_t *)e;
+      print_modifiers(ev->state);
+
+      printf ("Button %d released in window %ld, at coordinates (%d,%d)\n",
+              ev->detail, ev->event, ev->event_x, ev->event_y);
+      break;
+    }
+    case XCB_MOTION_NOTIFY: {
+      xcb_motion_notify_event_t *ev = (xcb_motion_notify_event_t *)e;
+
+      printf ("Mouse moved in window %ld, at coordinates (%d,%d)\n",
+              ev->event, ev->event_x, ev->event_y);
+      break;
+    }
+    case XCB_ENTER_NOTIFY: {
+      xcb_enter_notify_event_t *ev = (xcb_enter_notify_event_t *)e;
+
+      printf ("Mouse entered window %ld, at coordinates (%d,%d)\n",
+              ev->event, ev->event_x, ev->event_y);
+      break;
+    }
+    case XCB_LEAVE_NOTIFY: {
+      xcb_leave_notify_event_t *ev = (xcb_leave_notify_event_t *)e;
+
+      printf ("Mouse left window %ld, at coordinates (%d,%d)\n",
+              ev->event, ev->event_x, ev->event_y);
+      break;
+    }
+    case XCB_KEY_PRESS: {
+      xcb_key_press_event_t *ev = (xcb_key_press_event_t *)e;
+      print_modifiers(ev->state);
+
+      printf ("Key pressed in window %ld\n",
+              ev->event);
+      break;
+    }
+    case XCB_KEY_RELEASE: {
+      xcb_key_release_event_t *ev = (xcb_key_release_event_t *)e;
+      print_modifiers(ev->state);
+
+      printf ("Key released in window %ld\n",
+              ev->event);
+      break;
+    }
+    default:
+      /* Unknown event type, ignore it */
+      printf("Unknown event: %d\n", e->response_type);
+      break;
+    }
+    /* Free the Generic Event */
+    free (e);
+  }
+
+  return 0;
+}
+\end{minted}
+  \end{enumerate}
+\item
+  \protect\hypertarget{font}{}{Handling text and fonts}
+
+  Besides drawing graphics on a window, we often want to draw text. Text
+  strings have two major properties: the characters to be drawn and the
+  font with which they are drawn. In order to draw text, we need to
+  first request the X server to load a font. We then assign a font to a
+  Graphic Context, and finally, we draw the text in a window, using the
+  Graphic Context.
+
+  \begin{enumerate}
+  \item
+    \protect\hypertarget{fontstruct}{}{The Font structure}
+
+    In order to support flexible fonts, a font type is defined. You know
+    what ? It's an Id:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+typedef uint32_t xcb_font_t;
+\end{minted}
+
+    It is used to contain information about a font, and is passed to
+    several functions that handle fonts selection and text drawing. We
+    ask the X server to attribute an Id to our font with the function:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_font_t xcb_generate_id (xcb_connection_t *c);
+\end{minted}
+
+    \hfill\break
+  \item
+    \protect\hypertarget{openingfont}{}{Opening a Font}
+
+    To open a font, we use the following function:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_void_cookie_t xcb_open_font (xcb_connection_t *c,
+                                 xcb_font_t        fid,
+                                 uint16_t          name_len,
+                                 const char       *name);
+\end{minted}
+
+    The {fid} parameter is the font Id defined by {xcb\_generate\_id()}
+    (see above). The {name} parameter is the name of the font you want
+    to open. Use the command {xlsfonts} in a terminal to know which are
+    the fonts available on your computer. The parameter {name\_len} is
+    the length of the name of the font (given by {strlen()}).
+  \item
+    \protect\hypertarget{assigningfont}{}{Assigning a Font to a Graphic
+    Context}
+
+    Once a font is opened, you have to create a Graphic Context that
+    will contain the informations about the color of the foreground and
+    the background used when you draw a text in a Drawable. Here is an
+    exemple of a Graphic Context that will allow us to draw an opened
+    font with a black foreground and a white background:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+  /*
+   * c is the connection
+   * screen is the screen where the window is displayed
+   * window is the window in which we will draw the text
+   * font is the opened font
+   */
+
+  uint32_t             value_list[3];
+  xcb_gcontext_t       gc;
+  uint32_t             mask;
+
+  gc = xcb_generate_id (c);
+  mask = XCB_GC_FOREGROUND | XCB_GC_BACKGROUND | XCB_GC_FONT;
+  value_list[0] = screen->black_pixel;
+  value_list[1] = screen->white_pixel;
+  value_list[2] = font;
+  xcb_create_gc (c, gc, window, mask, value_list);
+
+  /* The font is not needed anymore, so we close it */
+  xcb_close_font (c, font);
+\end{minted}
+  \item
+    \protect\hypertarget{drawingtext}{}{Drawing text in a drawable}
+
+    To draw a text in a drawable, we use the following function:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_void_cookie_t xcb_image_text_8 (xcb_connection_t *c,
+                                    uint8_t           string_len,
+                                    xcb_drawable_t    drawable,
+                                    xcb_gcontext_t    gc,
+                                    int16_t           x,
+                                    int16_t           y,
+                                    const char       *string);
+\end{minted}
+
+    The {string} parameter is the text to draw. The location of the
+    drawing is given by the parameters {x} and {y}. The base line of the
+    text is exactly the parameter {y}.
+  \item
+    \protect\hypertarget{fontcompleteexample}{}{Complete example}
+
+    This example draw a text at 10 pixels (for the base line) of the
+    bottom of a window. Pressing the Esc key exits the program.
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#include <xcb/xcb.h>
+
+#define WIDTH 300
+#define HEIGHT 100
+
+
+
+static xcb_gc_t gc_font_get (xcb_connection_t *c,
+                             xcb_screen_t     *screen,
+                             xcb_window_t      window,
+                             const char       *font_name);
+
+static void text_draw (xcb_connection_t *c,
+                       xcb_screen_t     *screen,
+                       xcb_window_t      window,
+                       int16_t           x1,
+                       int16_t           y1,
+                       const char       *label);
+
+static void
+text_draw (xcb_connection_t *c,
+           xcb_screen_t     *screen,
+           xcb_window_t      window,
+           int16_t           x1,
+           int16_t           y1,
+           const char       *label)
+{
+  xcb_void_cookie_t    cookie_gc;
+  xcb_void_cookie_t    cookie_text;
+  xcb_generic_error_t *error;
+  xcb_gcontext_t       gc;
+  uint8_t              length;
+
+  length = strlen (label);
+
+  gc = gc_font_get(c, screen, window, "7x13");
+
+  cookie_text = xcb_image_text_8_checked (c, length, window, gc,
+                                          x1,
+                                          y1, label);
+  error = xcb_request_check (c, cookie_text);
+  if (error) {
+    fprintf (stderr, "ERROR: can't paste text : %d\n", error->error_code);
+    xcb_disconnect (c);
+    exit (-1);
+  }
+
+  cookie_gc = xcb_free_gc (c, gc);
+  error = xcb_request_check (c, cookie_gc);
+  if (error) {
+    fprintf (stderr, "ERROR: can't free gc : %d\n", error->error_code);
+    xcb_disconnect (c);
+    exit (-1);
+  }
+}
+
+static xcb_gc_t
+gc_font_get (xcb_connection_t *c,
+             xcb_screen_t     *screen,
+             xcb_window_t      window,
+             const char       *font_name)
+{
+  uint32_t             value_list[3];
+  xcb_void_cookie_t    cookie_font;
+  xcb_void_cookie_t    cookie_gc;
+  xcb_generic_error_t *error;
+  xcb_font_t           font;
+  xcb_gcontext_t       gc;
+  uint32_t             mask;
+
+  font = xcb_generate_id (c);
+  cookie_font = xcb_open_font_checked (c, font,
+                                       strlen (font_name),
+                                       font_name);
+
+  error = xcb_request_check (c, cookie_font);
+  if (error) {
+    fprintf (stderr, "ERROR: can't open font : %d\n", error->error_code);
+    xcb_disconnect (c);
+    return -1;
+  }
+
+  gc = xcb_generate_id (c);
+  mask = XCB_GC_FOREGROUND | XCB_GC_BACKGROUND | XCB_GC_FONT;
+  value_list[0] = screen->black_pixel;
+  value_list[1] = screen->white_pixel;
+  value_list[2] = font;
+  cookie_gc = xcb_create_gc_checked (c, gc, window, mask, value_list);
+  error = xcb_request_check (c, cookie_gc);
+  if (error) {
+    fprintf (stderr, "ERROR: can't create gc : %d\n", error->error_code);
+    xcb_disconnect (c);
+    exit (-1);
+  }
+
+  cookie_font = xcb_close_font_checked (c, font);
+  error = xcb_request_check (c, cookie_font);
+  if (error) {
+    fprintf (stderr, "ERROR: can't close font : %d\n", error->error_code);
+    xcb_disconnect (c);
+    exit (-1);
+  }
+
+  return gc;
+}
+
+int main ()
+{
+  xcb_screen_iterator_t screen_iter;
+  xcb_connection_t     *c;
+  const xcb_setup_t    *setup;
+  xcb_screen_t         *screen;
+  xcb_generic_event_t  *e;
+  xcb_generic_error_t  *error;
+  xcb_void_cookie_t     cookie_window;
+  xcb_void_cookie_t     cookie_map;
+  xcb_window_t          window;
+  uint32_t              mask;
+  uint32_t              values[2];
+  int                   screen_number;
+
+  /* getting the connection */
+  c = xcb_connect (NULL, &screen_number);
+  if (!c) {
+    fprintf (stderr, "ERROR: can't connect to an X server\n");
+    return -1;
+  }
+
+  /* getting the current screen */
+  setup = xcb_get_setup (c);
+
+  screen = NULL;
+  screen_iter = xcb_setup_roots_iterator (setup);
+  for (; screen_iter.rem != 0; --screen_number, xcb_screen_next (&screen_iter))
+    if (screen_number == 0)
+      {
+        screen = screen_iter.data;
+        break;
+      }
+  if (!screen) {
+    fprintf (stderr, "ERROR: can't get the current screen\n");
+    xcb_disconnect (c);
+    return -1;
+  }
+
+  /* creating the window */
+  window = xcb_generate_id (c);
+  mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
+  values[0] = screen->white_pixel;
+  values[1] =
+    XCB_EVENT_MASK_KEY_RELEASE |
+    XCB_EVENT_MASK_BUTTON_PRESS |
+    XCB_EVENT_MASK_EXPOSURE |
+    XCB_EVENT_MASK_POINTER_MOTION;
+  cookie_window = xcb_create_window_checked (c,
+                                             screen->root_depth,
+                                             window, screen->root,
+                                             20, 200, WIDTH, HEIGHT,
+                                             0, XCB_WINDOW_CLASS_INPUT_OUTPUT,
+                                             screen->root_visual,
+                                             mask, values);
+  cookie_map = xcb_map_window_checked (c, window);
+
+  /* error managing */
+  error = xcb_request_check (c, cookie_window);
+  if (error) {
+    fprintf (stderr, "ERROR: can't create window : %d\n", error->error_code);
+    xcb_disconnect (c);
+    return -1;
+  }
+  error = xcb_request_check (c, cookie_map);
+  if (error) {
+    fprintf (stderr, "ERROR: can't map window : %d\n", error->error_code);
+    xcb_disconnect (c);
+    return -1;
+  }
+
+  xcb_flush(c);
+
+  while (1) {
+    e = xcb_poll_for_event(c);
+    if (e) {
+      switch (e->response_type & ~0x80) {
+      case XCB_EXPOSE: {
+        char *text;
+
+        text = "Press ESC key to exit...";
+        text_draw (c, screen, window, 10, HEIGHT - 10, text);
+        break;
+      }
+      case XCB_KEY_RELEASE: {
+        xcb_key_release_event_t *ev;
+
+        ev = (xcb_key_release_event_t *)e;
+
+        switch (ev->detail) {
+          /* ESC */
+        case 9:
+          free (e);
+          xcb_disconnect (c);
+          return 0;
+        }
+      }
+      }
+      free (e);
+    }
+  }
+
+  return 0;
+}
+\end{minted}
+  \end{enumerate}
+\item
+  \protect\hypertarget{wm}{}{Interacting with the window manager}
+
+  After we have seen how to create windows and draw on them, we take one
+  step back, and look at how our windows are interacting with their
+  environment (the full screen and the other windows). First of all, our
+  application needs to interact with the window manager. The window
+  manager is responsible to decorating drawn windows (i.e. adding a
+  frame, an iconify button, a system menu, a title bar, etc), as well as
+  handling icons shown when windows are being iconified. It also handles
+  ordering of windows on the screen, and other administrative tasks. We
+  need to give it various hints as to how we want it to treat our
+  application's windows.
+
+  \begin{enumerate}
+  \item
+    \protect\hypertarget{wmprop}{}{Window properties}
+
+    Many of the parameters communicated to the window manager are passed
+    using data called "properties". These properties are attached by the
+    X server to different windows, and are stored in a format that makes
+    it possible to read them from different machines that may use
+    different architectures (remember that an X client program may run
+    on a remote machine).
+
+    The property and its type (a string, an integer, etc) are Id. Their
+    type are {xcb\_atom\_t}:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+typedef uint32_t xcb_atom_t;
+\end{minted}
+
+    To change the property of a window, we use the following function:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_void_cookie_t xcb_change_property (xcb_connection_t *c,       /* Connection to the X server */
+                                       uint8_t          mode,     /* Property mode */
+                                       xcb_window_t     window,   /* Window */
+                                       xcb_atom_t       property, /* Property to change */
+                                       xcb_atom_t       type,     /* Type of the property */
+                                       uint8_t          format,   /* Format of the property (8, 16, 32) */
+                                       uint32_t         data_len, /* Length of the data parameter */
+                                       const void      *data);    /* Data */
+\end{minted}
+
+    The {mode} parameter coud be one of the following values (defined in
+    enumeration xcb\_prop\_mode\_t in the xproto.h header file):
+
+    \begin{itemize}
+    \tightlist
+    \item
+      XCB\_PROP\_MODE\_REPLACE
+    \item
+      XCB\_PROP\_MODE\_PREPEND
+    \item
+      XCB\_PROP\_MODE\_APPEND
+    \end{itemize}
+
+    \hfill\break
+  \item
+    \protect\hypertarget{wmname}{}{Setting the window name and icon
+    name}
+
+    The first thing we want to do would be to set the name for our
+    window. This is done using the {xcb\_change\_property()} function.
+    This name may be used by the window manager as the title of the
+    window (in the title bar), in a task list, etc. The property atom to
+    use to set the name of a window is {WM\_NAME} (and {WM\_ICON\_NAME}
+    for the iconified window) and its type is {STRING}. Here is an
+    example of utilization:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+#include <string.h>
+
+#include <xcb/xcb.h>
+#include <xcb/xcb_atom.h>
+
+int
+main ()
+{
+  xcb_connection_t *c;
+  xcb_screen_t     *screen;
+  xcb_window_t      win;
+  char             *title = "Hello World !";
+  char             *title_icon = "Hello World ! (iconified)";
+
+
+
+  /* Open the connection to the X server */
+  c = xcb_connect (NULL, NULL);
+
+  /* Get the first screen */
+  screen = xcb_setup_roots_iterator (xcb_get_setup (c)).data;
+
+  /* Ask for our window's Id */
+  win = xcb_generate_id (c);
+
+  /* Create the window */
+  xcb_create_window (c,                             /* Connection          */
+                     0,                             /* depth               */
+                     win,                           /* window Id           */
+                     screen->root,                  /* parent window       */
+                     0, 0,                          /* x, y                */
+                     250, 150,                      /* width, height       */
+                     10,                            /* border_width        */
+                     XCB_WINDOW_CLASS_INPUT_OUTPUT, /* class               */
+                     screen->root_visual,           /* visual              */
+                     0, NULL);                      /* masks, not used     */
+
+  /* Set the title of the window */
+  xcb_change_property (c, XCB_PROP_MODE_REPLACE, win,
+                       WM_NAME, STRING, 8,
+                       strlen (title), title);
+
+  /* Set the title of the window icon */
+  xcb_change_property (c, XCB_PROP_MODE_REPLACE, win,
+                       WM_ICON_NAME, STRING, 8,
+                       strlen(title_icon), title_icon);
+
+  /* Map the window on the screen */
+  xcb_map_window (c, win);
+
+  xcb_flush (c);
+
+  while (1) {}
+
+  return 0;
+}
+\end{minted}
+
+    Note: the use of the atoms needs our program to be compiled and
+    linked against xcb\_atom, so that we have to use
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+gcc prog.c -o prog `pkg-config --cflags --libs xcb_atom`
+\end{minted}
+
+    for the program to compile fine.
+  \end{enumerate}
+\item
+  \protect\hypertarget{winop}{}{Simple window operations}
+
+  One more thing we can do to our window is manipulate them on the
+  screen (resize them, move them, raise or lower them, iconify them, and
+  so on). Some window operations functions are supplied by XCB for this
+  purpose.
+
+  \begin{enumerate}
+  \item
+    \protect\hypertarget{winmap}{}{Mapping and un-mapping a window}
+
+    The first pair of operations we can apply on a window is mapping it,
+    or un-mapping it. Mapping a window causes the window to appear on
+    the screen, as we have seen in our simple window program example.
+    Un-mapping it causes it to be removed from the screen (although the
+    window as a logical entity still exists). This gives the effect of
+    making a window hidden (unmapped) and shown again (mapped). For
+    example, if we have a dialog box window in our program, instead of
+    creating it every time the user asks to open it, we can create the
+    window once, in an un-mapped mode, and when the user asks to open
+    it, we simply map the window on the screen. When the user clicked
+    the 'OK' or 'Cancel' button, we simply un-map the window. This is
+    much faster than creating and destroying the window, however, the
+    cost is wasted resources, both on the client side, and on the X
+    server side.
+
+    To map a window, you use the following function:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_void_cookie_t xcb_map_window (xcb_connection_t *c,
+                                  xcb_window_t      window);
+\end{minted}
+
+    To have a simple example, see the
+    \protect\hyperlink{helloworld}{example} above. The mapping operation
+    will cause an {Expose} event to be sent to our application, unless
+    the window is completely covered by other windows.
+
+    Un-mapping a window is also simple. You use the function
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_void_cookie_t xcb_unmap_window (xcb_connection_t *c,
+                                    xcb_window_t      window);
+\end{minted}
+
+    The utilization of this function is the same as
+    {xcb\_map\_window()}.
+  \item
+    \protect\hypertarget{winconf}{}{Configuring a window}
+
+    As we have seen when we have created our first window, in the X
+    Events subsection, we can set some attributes for the window (that
+    is, the position, the size, the events the window will receive,
+    etc). If we want to modify them, but the window is already created,
+    we can change them by using the following function:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_void_cookie_t xcb_configure_window (xcb_connection_t *c,            /* The connection to the X server*/
+                                        xcb_window_t      window,       /* The window to configure */
+                                        uint16_t          value_mask,   /* The mask */
+                                        const uint32_t   *value_list);  /* The values to set */
+\end{minted}
+
+    We set the {value\_mask} to one or several mask values that are in
+    the xcb\_config\_window\_t enumeration in the xproto.h header:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      {XCB\_CONFIG\_WINDOW\_X}: new x coordinate of the window's top
+      left corner
+    \item
+      {XCB\_CONFIG\_WINDOW\_Y}: new y coordinate of the window's top
+      left corner
+    \item
+      {XCB\_CONFIG\_WINDOW\_WIDTH}: new width of the window
+    \item
+      {XCB\_CONFIG\_WINDOW\_HEIGHT}: new height of the window
+    \item
+      {XCB\_CONFIG\_WINDOW\_BORDER\_WIDTH}: new width of the border of
+      the window
+    \item
+      {XCB\_CONFIG\_WINDOW\_SIBLING}
+    \item
+      {XCB\_CONFIG\_WINDOW\_STACK\_MODE}: the new stacking order
+    \end{itemize}
+
+    We then give to {value\_mask} the new value. We now describe how to
+    use {xcb\_configure\_window\_t} in some useful situations.
+  \item
+    \protect\hypertarget{winmove}{}{Moving a window around the screen}
+
+    An operation we might want to do with windows is to move them to a
+    different location. This can be done like this:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+const static uint32_t values[] = { 10, 20 };
+
+/* The connection c and the window win are supposed to be defined */
+
+/* Move the window to coordinates x = 10 and y = 20 */
+xcb_configure_window (c, win, XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y, values);
+\end{minted}
+
+    Note that when the window is moved, it might get partially exposed
+    or partially hidden by other windows, and thus we might get {Expose}
+    events due to this operation.
+  \item
+    \protect\hypertarget{winsize}{}{Resizing a window}
+
+    Yet another operation we can do is to change the size of a window.
+    This is done using the following code:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+const static uint32_t values[] = { 200, 300 };
+
+/* The connection c and the window win are supposed to be defined */
+
+/* Resize the window to width = 10 and height = 20 */
+xcb_configure_window (c, win, XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT, values);
+\end{minted}
+
+    We can also combine the move and resize operations using one single
+    call to {xcb\_configure\_window\_t}:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+const static uint32_t values[] = { 10, 20, 200, 300 };
+
+/* The connection c and the window win are supposed to be defined */
+
+/* Move the window to coordinates x = 10 and y = 20 */
+/* and resize the window to width = 10 and height = 20 */
+xcb_configure_window (c, win, XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y | XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT, values);
+\end{minted}
+  \item
+    \protect\hypertarget{winstack}{}{Changing windows stacking order:
+    raise and lower}
+
+    Until now, we changed properties of a single window. We'll see that
+    there are properties that relate to the window and other windows.
+    One of them is the stacking order. That is, the order in which the
+    windows are layered on top of each other. The front-most window is
+    said to be on the top of the stack, while the back-most window is at
+    the bottom of the stack. Here is how to manipulate our windows stack
+    order:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+const static uint32_t values[] = { XCB_STACK_MODE_ABOVE };
+
+/* The connection c and the window win are supposed to be defined */
+
+/* Move the window on the top of the stack */
+xcb_configure_window (c, win, XCB_CONFIG_WINDOW_STACK_MODE, values);
+\end{minted}
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+const static uint32_t values[] = { XCB_STACK_MODE_BELOW };
+
+/* The connection c and the window win are supposed to be defined */
+
+/* Move the window on the bottom of the stack */
+xcb_configure_window (c, win, XCB_CONFIG_WINDOW_STACK_MODE, values);
+\end{minted}
+  \item
+    \protect\hypertarget{wingetinfo}{}{Getting information about a
+    window}
+
+    Just like we can set various attributes of our windows, we can also
+    ask the X server supply the current values of these attributes. For
+    example, we can check where a window is located on the screen, what
+    is its current size, whether it is mapped or not, etc. The structure
+    that contains some of this information is
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+typedef struct {
+    uint8_t      response_type;
+    uint8_t      depth;         /* depth of the window */
+    uint16_t     sequence;
+    uint32_t     length;
+    xcb_window_t root;          /* Id of the root window *>
+    int16_t      x;             /* X coordinate of the window's location */
+    int16_t      y;             /* Y coordinate of the window's location */
+    uint16_t     width;         /* Width of the window */
+    uint16_t     height;        /* Height of the window */
+    uint16_t     border_width;  /* Width of the window's border */
+} xcb_get_geometry_reply_t;
+\end{minted}
+
+    XCB fill this structure with two functions:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_get_geometry_cookie_t  xcb_get_geometry       (xcb_connection_t         *c,
+                                                   xcb_drawable_t            drawable);
+xcb_get_geometry_reply_t  *xcb_get_geometry_reply (xcb_connection_t         *c,
+                                                   xcb_get_geometry_cookie_t cookie,
+                                                   xcb_generic_error_t     **e);
+\end{minted}
+
+    You use them as follows:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+  xcb_connection_t         *c;
+  xcb_drawable_t            win;
+  xcb_get_geometry_reply_t *geom;
+
+  /* You initialize c and win */
+
+  geom = xcb_get_geometry_reply (c, xcb_get_geometry (c, win), NULL);
+
+  /* Do something with the fields of geom */
+
+  free (geom);
+\end{minted}
+
+    Remark that you have to free the structure, as
+    {xcb\_get\_geometry\_reply\_t} allocates a newly one.
+
+    One problem is that the returned location of the window is relative
+    to its parent window. This makes these coordinates rather useless
+    for any window manipulation functions, like moving it on the screen.
+    In order to overcome this problem, we need to take a two-step
+    operation. First, we find out the Id of the parent window of our
+    window. We then translate the above relative coordinates to the
+    screen coordinates.
+
+    To get the Id of the parent window, we need this structure:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+typedef struct {
+    uint8_t      response_type;
+    uint8_t      pad0;
+    uint16_t     sequence;
+    uint32_t     length;
+    xcb_window_t root;
+    xcb_window_t parent;       /* Id of the parent window */
+    uint16_t     children_len;
+    uint8_t      pad1[14];
+} xcb_query_tree_reply_t;
+\end{minted}
+
+    To fill this structure, we use these two functions:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_query_tree_cookie_t xcb_query_tree       (xcb_connection_t        *c,
+                                              xcb_window_t             window);
+xcb_query_tree_reply_t *xcb_query_tree_reply (xcb_connection_t        *c,
+                                              xcb_query_tree_cookie_t  cookie,
+                                              xcb_generic_error_t    **e);
+\end{minted}
+
+    The translated coordinates will be found in this structure:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+typedef struct {
+    uint8_t      response_type;
+    uint8_t      same_screen;
+    uint16_t     sequence;
+    uint32_t     length;
+    xcb_window_t child;
+    uint16_t     dst_x;        /* Translated x coordinate */
+    uint16_t     dst_y;        /* Translated y coordinate */
+} xcb_translate_coordinates_reply_t;
+\end{minted}
+
+    As usual, we need two functions to fill this structure:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_translate_coordinates_cookie_t xcb_translate_coordinates       (xcb_connection_t                  *c,
+                                                                    xcb_window_t                       src_window,
+                                                                    xcb_window_t                       dst_window,
+                                                                    int16_t                            src_x,
+                                                                    int16_t                            src_y);
+xcb_translate_coordinates_reply_t *xcb_translate_coordinates_reply (xcb_connection_t                  *c,
+                                                                    xcb_translate_coordinates_cookie_t cookie,
+                                                                    xcb_generic_error_t              **e);
+\end{minted}
+
+    We use them as follows:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+  xcb_connection_t                  *c;
+  xcb_drawable_t                     win;
+  xcb_get_geometry_reply_t          *geom;
+  xcb_query_tree_reply_t            *tree;
+  xcb_translate_coordinates_reply_t *trans;
+
+  /* You initialize c and win */
+
+  geom  = xcb_get_geometry_reply (c, xcb_get_geometry (c, win), NULL);
+  if (!geom)
+    return 0;
+
+  tree  = xcb_query_tree_reply (c, xcb_query_tree (c, win), NULL);
+  if (!tree)
+    return 0;
+
+  trans = xcb_translate_coordinates_reply (c,
+                                           xcb_translate_coordinates (c,
+                                                                      win,
+                                                                      tree->parent,
+                                                                      geom->x, geom->y),
+                                           NULL);
+  if (!trans)
+    return 0;
+
+  /* the translated coordinates are in trans->dst_x and trans->dst_y */
+
+  free (trans);
+  free (tree);
+  free (geom);
+\end{minted}
+
+    Of course, as for {geom}, {tree} and {trans} have to be freed.
+
+    The work is a bit hard, but XCB is a very low-level library.
+
+    \textbf{TODO:} the utilization of these functions should be a prog,
+    which displays the coordinates of the window.
+
+    There is another structure that gives informations about our window:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+typedef struct {
+    uint8_t        response_type;
+    uint8_t        backing_store;
+    uint16_t       sequence;
+    uint32_t       length;
+    xcb_visualid_t visual;                /* Visual of the window */
+    uint16_t       _class;
+    uint8_t        bit_gravity;
+    uint8_t        win_gravity;
+    uint32_t       backing_planes;
+    uint32_t       backing_pixel;
+    uint8_t        save_under;
+    uint8_t        map_is_installed;
+    uint8_t        map_state;             /* Map state of the window */
+    uint8_t        override_redirect;
+    xcb_colormap_t colormap;              /* Colormap of the window */
+    uint32_t       all_event_masks;
+    uint32_t       your_event_mask;
+    uint16_t       do_not_propagate_mask;
+} xcb_get_window_attributes_reply_t;
+\end{minted}
+
+    XCB supplies these two functions to fill it:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_get_window_attributes_cookie_t xcb_get_window_attributes       (xcb_connection_t                  *c,
+                                                                    xcb_window_t                       window);
+xcb_get_window_attributes_reply_t *xcb_get_window_attributes_reply (xcb_connection_t                  *c,
+                                                                    xcb_get_window_attributes_cookie_t cookie,
+                                                                    xcb_generic_error_t              **e);
+\end{minted}
+
+    You use them as follows:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+  xcb_connection_t                  *c;
+  xcb_drawable_t                     win;
+  xcb_get_window_attributes_reply_t *attr;
+
+  /* You initialize c and win */
+
+  attr = xcb_get_window_attributes_reply (c, xcb_get_window_attributes (c, win), NULL);
+
+  if (!attr)
+    return 0;
+
+  /* Do something with the fields of attr */
+
+  free (attr);
+\end{minted}
+
+    As for {geom}, {attr} has to be freed.
+  \end{enumerate}
+\item
+  \protect\hypertarget{usecolor}{}{Using colors to paint the rainbow}
+
+  Up until now, all our painting operation were done using black and
+  white. We will (finally) see now how to draw using colors.
+
+  \begin{enumerate}
+  \item
+    \protect\hypertarget{colormap}{}{Color maps}
+
+    In the beginning, there were not enough colors. Screen controllers
+    could only support a limited number of colors simultaneously
+    (initially 2, then 4, 16 and 256). Because of this, an application
+    could not just ask to draw in a "light purple-red" color, and expect
+    that color to be available. Each application allocated the colors it
+    needed, and when all the color entries (4, 16, 256 colors) were in
+    use, the next color allocation would fail.
+
+    Thus, the notion of "a color map" was introduced. A color map is a
+    table whose size is the same as the number of simultaneous colors a
+    given screen controller. Each entry contained the RGB (Red, Green
+    and Blue) values of a different color (all colors can be drawn using
+    some combination of red, green and blue). When an application wants
+    to draw on the screen, it does not specify which color to use.
+    Rather, it specifies which color entry of some color map to be used
+    during this drawing. Change the value in this color map entry and
+    the drawing will use a different color.
+
+    In order to be able to draw using colors that got something to do
+    with what the programmer intended, color map allocation functions
+    are supplied. You could ask to allocate entry for a color with a set
+    of RGB values. If one already existed, you would get its index in
+    the table. If none existed, and the table was not full, a new cell
+    would be allocated to contain the given RGB values, and its index
+    returned. If the table was full, the procedure would fail. You could
+    then ask to get a color map entry with a color that is closest to
+    the one you were asking for. This would mean that the actual drawing
+    on the screen would be done using colors similar to what you wanted,
+    but not the same.
+
+    On today's more modern screens where one runs an X server with
+    support for 16 million colors, this limitation looks a little silly,
+    but remember that there are still older computers with older
+    graphics cards out there. Using color map, support for these screen
+    becomes transparent to you. On a display supporting 16 million
+    colors, any color entry allocation request would succeed. On a
+    display supporting a limited number of colors, some color allocation
+    requests would return similar colors. It won't look as good, but
+    your application would still work.
+  \item
+    \protect\hypertarget{colormapalloc}{}{Allocating and freeing Color
+    Maps}
+
+    When you draw using XCB, you can choose to use the standard color
+    map of the screen your window is displayed on, or you can allocate a
+    new color map and apply it to a window. In the latter case, each
+    time the mouse moves onto your window, the screen color map will be
+    replaced by your window's color map, and you'll see all the other
+    windows on screen change their colors into something quite bizzare.
+    In fact, this is the effect you get with X applications that use the
+    "-install" command line option.
+
+    In XCB, a color map is (as often in X) an Id:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+typedef uint32_t xcb_colormap_t;
+\end{minted}
+
+    In order to access the screen's default color map, you just have to
+    retrieve the {default\_colormap} field of the {xcb\_screen\_t}
+    structure (see Section \protect\hyperlink{screen}{Checking basic
+    information about a connection}):
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+#include <stdio.h>
+
+#include <xcb/xcb.h>
+
+int
+main ()
+{
+  xcb_connection_t *c;
+  xcb_screen_t     *screen;
+  xcb_colormap_t    colormap;
+
+  /* Open the connection to the X server and get the first screen */
+  c = xcb_connect (NULL, NULL);
+  screen = xcb_setup_roots_iterator (xcb_get_setup (c)).data;
+
+  colormap = screen->default_colormap;
+
+  return 0;
+}
+\end{minted}
+
+    This will return the color map used by default on the first screen
+    (again, remember that an X server may support several different
+    screens, each of which might have its own resources).
+
+    The other option, that of allocating a new colormap, works as
+    follows. We first ask the X server to give an Id to our color map,
+    with this function:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_colormap_t xcb_generate_id (xcb_connection_t *c);
+\end{minted}
+
+    Then, we create the color map with
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_void_cookie_t xcb_create_colormap (xcb_connection_t *c,       /* Pointer to the xcb_connection_t structure */
+                                       uint8_t           alloc,   /* Colormap entries to be allocated (AllocNone or AllocAll) */
+                                       xcb_colormap_t    mid,     /* Id of the color map */
+                                       xcb_window_t      window,  /* Window on whose screen the colormap will be created */
+                                       xcb_visualid_t    visual); /* Id of the visual supported by the screen */
+\end{minted}
+
+    Here is an example of creation of a new color map:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+#include <xcb/xcb.h>
+
+int
+main ()
+{
+  xcb_connection_t *c;
+  xcb_screen_t     *screen;
+  xcb_window_t      win;
+  xcb_colormap_t    cmap
+
+  /* Open the connection to the X server and get the first screen */
+  c = xcb_connect (NULL, NULL);
+  screen = xcb_setup_roots_iterator (xcb_get_setup (c)).data;
+
+  /* We create the window win here*/
+
+  cmap = xcb_generate_id (c);
+  xcb_create_colormap (c, XCB_COLORMAP_ALLOC_NONE, cmap, win, screen->root_visual);
+
+  return 0;
+}
+\end{minted}
+
+    Note that the window parameter is only used to allow the X server to
+    create the color map for the given screen. We can then use this
+    color map for any window drawn on the same screen.
+
+    To free a color map, it suffices to use this function:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_void_cookie_t xcb_free_colormap (xcb_connection_t *c,   /* The connection */
+                                     xcb_colormap_t cmap);  /* The color map */
+\end{minted}
+
+    Comparison Xlib/XCB
+
+    \begin{itemize}
+    \tightlist
+    \item
+      XCreateColormap ()
+    \end{itemize}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      xcb\_generate\_id ()
+    \item
+      xcb\_create\_colormap ()
+    \end{itemize}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      XFreeColormap ()
+    \end{itemize}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      xcb\_free\_colormap ()
+    \end{itemize}
+
+    \hfill\break
+  \item
+    \protect\hypertarget{alloccolor}{}{Allocating and freeing a color
+    entry}
+
+    Once we got access to some color map, we can start allocating
+    colors. The informations related to a color are stored in the
+    following structure:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+typedef struct {
+    uint8_t  response_type;
+    uint8_t  pad0;
+    uint16_t sequence;
+    uint32_t length;
+    uint16_t red;          /* The red component   */
+    uint16_t green;        /* The green component */
+    uint16_t blue;         /* The blue component  */
+    uint8_t  pad1[2];
+    uint32_t pixel;        /* The entry in the color map, supplied by the X server */
+} xcb_alloc_color_reply_t;
+\end{minted}
+
+    XCB supplies these two functions to fill it:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_alloc_color_cookie_t xcb_alloc_color       (xcb_connection_t        *c,
+                                                xcb_colormap_t           cmap,
+                                                uint16_t                 red,
+                                                uint16_t                 green,
+                                                uint16_t                 blue);
+xcb_alloc_color_reply_t *xcb_alloc_color_reply (xcb_connection_t        *c,
+                                                xcb_alloc_color_cookie_t cookie,
+                                                xcb_generic_error_t    **e);
+\end{minted}
+
+    The fuction {xcb\_alloc\_color()} takes the 3 RGB components as
+    parameters (red, green and blue). Here is an example of using these
+    functions:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+#include <malloc.h>
+
+#include <xcb/xcb.h>
+
+int
+main ()
+{
+  xcb_connection_t        *c;
+  xcb_screen_t            *screen;
+  xcb_window_t             win;
+  xcb_colormap_t           cmap;
+  xcb_alloc_color_reply_t *rep;
+
+  /* Open the connection to the X server and get the first screen */
+  c = xcb_connect (NULL, NULL);
+  screen = xcb_setup_roots_iterator (xcb_get_setup (c)).data;
+
+  /* We create the window win here*/
+
+  cmap = xcb_generate_id (c);
+  xcb_create_colormap (c, XCB_COLORMAP_ALLOC_NONE, cmap, win, screen->root_visual);
+
+  rep = xcb_alloc_color_reply (c, xcb_alloc_color (c, cmap, 65535, 0, 0), NULL);
+
+  if (!rep)
+    return 0;
+
+  /* Do something with r->pixel or the components */
+
+  free (rep);
+
+  return 0;
+}
+\end{minted}
+
+    As {xcb\_alloc\_color\_reply()} allocates memory, you have to free
+    {rep}.
+
+    \textbf{TODO}: Talk about freeing colors.
+  \end{enumerate}
+\item
+  \protect\hypertarget{pixmaps}{}{X Bitmaps and Pixmaps}
+
+  One thing many so-called "Multi-Media" applications need to do, is
+  display images. In the X world, this is done using bitmaps and
+  pixmaps. We have already seen some usage of them when setting an icon
+  for our application. Lets study them further, and see how to draw
+  these images inside a window, along side the simple graphics and text
+  we have seen so far.
+
+  One thing to note before delving further, is that XCB (nor Xlib)
+  supplies no means of manipulating popular image formats, such as gif,
+  png, jpeg or tiff. It is up to the programmer (or to higher level
+  graphics libraries) to translate these image formats into formats that
+  the X server is familiar with (x bitmaps and x pixmaps).
+
+  \begin{enumerate}
+  \item
+    \protect\hypertarget{pixmapswhat}{}{What is a X Bitmap? An X
+    Pixmap?}
+
+    An X bitmap is a two-color image stored in a format specific to the
+    X window system. When stored in a file, the bitmap data looks like a
+    C source file. It contains variables defining the width and the
+    height of the bitmap, an array containing the bit values of the
+    bitmap (the size of the array is (width+7)/8*height and the bit and
+    byte order are LSB), and an optional hot-spot location (that will be
+    explained later, when discussing mouse cursors).
+
+    An X pixmap is a format used to stored images in the memory of an X
+    server. This format can store both black and white images (such as x
+    bitmaps) as well as color images. It is the only image format
+    supported by the X protocol, and any image to be drawn on screen,
+    should be first translated into this format.
+
+    In actuality, an X pixmap can be thought of as a window that does
+    not appear on the screen. Many graphics operations that work on
+    windows, will also work on pixmaps. Indeed, the type of X pixmap in
+    XCB is an Id like a window:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+typedef uint32_t xcb_pixmap_t;
+\end{minted}
+
+    Like Xlib, there is no difference between a Drawable, a Window or a
+    Pixmap:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+typedef uint32_t xcb_drawable_t;
+\end{minted}
+
+    in order to avoid confusion between a window and a pixmap. The
+    operations that will work the same on a window or a pixmap will
+    require a {xcb\_drawable\_t}
+
+    Remark: In Xlib, there is no specific difference between a
+    {Drawable}, a {Pixmap} or a {Window}: all are 32 bit long integer.
+    XCB wraps all these different IDs in structures to provide some
+    measure of type-safety.
+  \item
+    \protect\hypertarget{pixmapscreate}{}{Creating a pixmap}
+
+    Sometimes we want to create an un-initialized pixmap, so we can
+    later draw into it. This is useful for image drawing programs
+    (creating a new empty canvas will cause the creation of a new pixmap
+    on which the drawing can be stored). It is also useful when reading
+    various image formats: we load the image data into memory, create a
+    pixmap on the server, and then draw the decoded image data onto that
+    pixmap.
+
+    To create a new pixmap, we first ask the X server to give an Id to
+    our pixmap, with this function:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_pixmap_t xcb_generate_id (xcb_connection_t *c);
+\end{minted}
+
+    Then, XCB supplies the following function to create new pixmaps:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_void_cookie_t xcb_create_pixmap (xcb_connection_t *c,         /* Pointer to the xcb_connection_t structure */
+                                     uint8_t           depth,     /* Depth of the screen */
+                                     xcb_pixmap_t      pid,       /* Id of the pixmap */
+                                     xcb_drawable_t    drawable,
+                                     uint16_t          width,     /* Width of the window (in pixels) */
+                                     uint16_t          height);   /* Height of the window (in pixels) */
+\end{minted}
+
+    \textbf{TODO}: Explain the drawable parameter, and give an example
+    (like \url{xpoints.c})
+  \item
+    \protect\hypertarget{pixmapsdraw}{}{}Drawing a pixmap in a window
+
+    Once we got a handle to a pixmap, we can draw it on some window,
+    using the following function:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_void_cookie_t xcb_copy_area (xcb_connection_t *c,             /* Pointer to the xcb_connection_t structure */
+                                 xcb_drawable_t    src_drawable,  /* The Drawable we want to paste */
+                                 xcb_drawable_t    dst_drawable,  /* The Drawable on which we copy the previous Drawable */
+                                 xcb_gcontext_t    gc,            /* A Graphic Context */
+                                 int16_t           src_x,         /* Top left x coordinate of the region we want to copy */
+                                 int16_t           src_y,         /* Top left y coordinate of the region we want to copy */
+                                 int16_t           dst_x,         /* Top left x coordinate of the region where we want to copy */
+                                 int16_t           dst_y,         /* Top left y coordinate of the region where we want to copy */
+                                 uint16_t          width,         /* Width of the region we want to copy */
+                                 uint16_t          height);       /* Height of the region we want to copy */
+\end{minted}
+
+    As you can see, we could copy the whole pixmap, as well as only a
+    given rectangle of the pixmap. This is useful to optimize the
+    drawing speed: we could copy only what we have modified in the
+    pixmap.
+
+    \textbf{One important note should be made}: it is possible to create
+    pixmaps with different depths on the same screen. When we perform
+    copy operations (a pixmap onto a window, etc), we should make sure
+    that both source and target have the same depth. If they have a
+    different depth, the operation would fail. The exception to this is
+    if we copy a specific bit plane of the source pixmap using the
+    {xcb\_copy\_plane\_t} function. In such an event, we can copy a
+    specific plane to the target window (in actuality, setting a
+    specific bit in the color of each pixel copied). This can be used to
+    generate strange graphic effects in a window, but that is beyond the
+    scope of this tutorial.
+  \item
+    \protect\hypertarget{pixmapsfree}{}{}Freeing a pixmap
+
+    Finally, when we are done using a given pixmap, we should free it,
+    in order to free resources of the X server. This is done using this
+    function:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_void_cookie_t xcb_free_pixmap (xcb_connection_t *c,        /* Pointer to the xcb_connection_t structure */
+                                   xcb_pixmap_t      pixmap);  /* A given pixmap */
+\end{minted}
+
+    Of course, after having freed it, we must not try accessing the
+    pixmap again.
+
+    \textbf{TODO}: Give an example, or a link to xpoints.c
+  \end{enumerate}
+\item
+  \protect\hypertarget{mousecursor}{}{Messing with the mouse cursor}
+
+  It it possible to modify the shape of the mouse pointer (also called
+  the X pointer) when in certain states, as we otfen see in programs.
+  For example, a busy application would often display the sand clock
+  over its main window, to give the user a visual hint that he should
+  wait. Let's see how we can change the mouse cursor of our windows.
+
+  \begin{enumerate}
+  \item
+    \protect\hypertarget{mousecursorcreate}{}{Creating and destroying a
+    mouse cursor}
+
+    There are two methods for creating cursors. One of them is by using
+    a set of predefined cursors, that are supplied by the X server, the
+    other is by using a user-supplied bitmap.
+
+    In the first method, we use a special font named "cursor", and the
+    function {xcb\_create\_glyph\_cursor}:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_void_cookie_t xcb_create_glyph_cursor (xcb_connection_t *c,
+                                           xcb_cursor_t      cid,
+                                           xcb_font_t        source_font, /* font for the source glyph */
+                                           xcb_font_t        mask_font,   /* font for the mask glyph or XCB_NONE */
+                                           uint16_t          source_char, /* character glyph for the source */
+                                           uint16_t          mask_char,   /* character glyph for the mask */
+                                           uint16_t          fore_red,    /* red value for the foreground of the source */
+                                           uint16_t          fore_green,  /* green value for the foreground of the source */
+                                           uint16_t          fore_blue,   /* blue value for the foreground of the source */
+                                           uint16_t          back_red,    /* red value for the background of the source */
+                                           uint16_t          back_green,  /* green value for the background of the source */
+                                           uint16_t          back_blue)   /* blue value for the background of the source */
+\end{minted}
+
+    \textbf{TODO}: Describe {source\_char} and {mask\_char}, for example
+    by giving an example on how to get the values. There is a list
+    there: \href{http://tronche.com/gui/x/xlib/appendix/b/}{X Font
+    Cursors}
+
+    So we first open that font (see \protect\hyperlink{loadfont}{Loading
+    a Font}) and create the new cursor. As for every X ressource, we
+    have to ask for an X id with {xcb\_generate\_id} first:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_font_t           font;
+xcb_cursor_t         cursor;
+
+/* The connection is set */
+
+font = xcb_generate_id (conn);
+xcb_open_font (conn, font, strlen ("cursor"), "cursor");
+
+cursor = xcb_generate_id (conn);
+xcb_create_glyph_cursor (conn, cursor, font, font,
+                         58, 58 + 1,
+                         0, 0, 0,
+                         0, 0, 0);
+\end{minted}
+
+    We have created the cursor "right hand" by specifying 58 to the
+    {source\_fon}t argument and 58 + 1 to the {mask\_font}.
+
+    The cursor is destroyed by using the function
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_void_cookie_t xcb_free_cursor (xcb_connection_t *c,
+                                   xcb_cursor_t      cursor);
+\end{minted}
+
+    In the second method, we create a new cursor by using a pair of
+    pixmaps, with depth of one (that is, two colors pixmaps). One pixmap
+    defines the shape of the cursor, while the other works as a mask,
+    specifying which pixels of the cursor will be actually drawn. The
+    rest of the pixels will be transparent.
+
+    \textbf{TODO}: give an example.
+  \item
+    \protect\hypertarget{mousecursorset}{}{Setting a window's mouse
+    cursor}
+
+    Once the cursor is created, we can modify the cursor of our window
+    by using {xcb\_change\_window\_attributes} and using the
+    {XCB\_CWCURSOR} attribute:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+uint32_t mask;
+uint32_t value_list;
+
+/* The connection and window are set */
+/* The cursor is already created */
+
+mask = XCB_CWCURSOR;
+value_list = cursor;
+xcb_change_window_attributes (conn, window, mask, &value_list);
+\end{minted}
+
+    Of course, the cursor and the font must be freed.
+  \item
+    \protect\hypertarget{mousecursorexample}{}{Complete example}
+
+    The following example displays a window with a button. When entering
+    the window, the window cursor is changed to an arrow. When clicking
+    once on the button, the cursor is changed to a hand. When clicking
+    again on the button, the cursor window gets back to the arrow. The
+    Esc key exits the application.
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#include <xcb/xcb.h>
+
+#define WIDTH 300
+#define HEIGHT 150
+
+
+
+static xcb_gc_t gc_font_get (xcb_connection_t *c,
+                             xcb_screen_t     *screen,
+                             xcb_window_t      window,
+                             const char       *font_name);
+
+static void button_draw (xcb_connection_t *c,
+                         xcb_screen_t     *screen,
+                         xcb_window_t      window,
+                         int16_t           x1,
+                         int16_t           y1,
+                         const char       *label);
+
+static void text_draw (xcb_connection_t *c,
+                       xcb_screen_t     *screen,
+                       xcb_window_t      window,
+                       int16_t           x1,
+                       int16_t           y1,
+                       const char       *label);
+
+static void cursor_set (xcb_connection_t *c,
+                        xcb_screen_t     *screen,
+                        xcb_window_t      window,
+                        int               cursor_id);
+
+
+static void
+button_draw (xcb_connection_t *c,
+             xcb_screen_t     *screen,
+             xcb_window_t      window,
+             int16_t           x1,
+             int16_t           y1,
+             const char       *label)
+{
+  xcb_point_t          points[5];
+  xcb_void_cookie_t    cookie_gc;
+  xcb_void_cookie_t    cookie_line;
+  xcb_void_cookie_t    cookie_text;
+  xcb_generic_error_t *error;
+  xcb_gcontext_t       gc;
+  int16_t              width;
+  int16_t              height;
+  uint8_t              length;
+  int16_t              inset;
+
+  length = strlen (label);
+  inset = 2;
+
+  gc = gc_font_get(c, screen, window, "7x13");
+
+  width = 7 * length + 2 * (inset + 1);
+  height = 13 + 2 * (inset + 1);
+  points[0].x = x1;
+  points[0].y = y1;
+  points[1].x = x1 + width;
+  points[1].y = y1;
+  points[2].x = x1 + width;
+  points[2].y = y1 - height;
+  points[3].x = x1;
+  points[3].y = y1 - height;
+  points[4].x = x1;
+  points[4].y = y1;
+  cookie_line = xcb_poly_line_checked (c, XCB_COORD_MODE_ORIGIN,
+                                       window, gc, 5, points);
+
+  error = xcb_request_check (c, cookie_line);
+  if (error) {
+    fprintf (stderr, "ERROR: can't draw lines : %d\n", error->error_code);
+    xcb_disconnect (c);
+    exit (-1);
+  }
+
+  cookie_text = xcb_image_text_8_checked (c, length, window, gc,
+                                          x1 + inset + 1,
+                                          y1 - inset - 1, label);
+  error = xcb_request_check (c, cookie_text);
+  if (error) {
+    fprintf (stderr, "ERROR: can't paste text : %d\n", error->error_code);
+    xcb_disconnect (c);
+    exit (-1);
+  }
+
+  cookie_gc = xcb_free_gc (c, gc);
+  error = xcb_request_check (c, cookie_gc);
+  if (error) {
+    fprintf (stderr, "ERROR: can't free gc : %d\n", error->error_code);
+    xcb_disconnect (c);
+    exit (-1);
+  }
+}
+
+static void
+text_draw (xcb_connection_t *c,
+           xcb_screen_t     *screen,
+           xcb_window_t      window,
+           int16_t           x1,
+           int16_t           y1,
+           const char       *label)
+{
+  xcb_void_cookie_t    cookie_gc;
+  xcb_void_cookie_t    cookie_text;
+  xcb_generic_error_t *error;
+  xcb_gcontext_t       gc;
+  uint8_t              length;
+
+  length = strlen (label);
+
+  gc = gc_font_get(c, screen, window, "7x13");
+
+  cookie_text = xcb_image_text_8_checked (c, length, window, gc,
+                                          x1,
+                                          y1, label);
+  error = xcb_request_check (c, cookie_text);
+  if (error) {
+    fprintf (stderr, "ERROR: can't paste text : %d\n", error->error_code);
+    xcb_disconnect (c);
+    exit (-1);
+  }
+
+  cookie_gc = xcb_free_gc (c, gc);
+  error = xcb_request_check (c, cookie_gc);
+  if (error) {
+    fprintf (stderr, "ERROR: can't free gc : %d\n", error->error_code);
+    xcb_disconnect (c);
+    exit (-1);
+  }
+}
+
+static xcb_gc_t
+gc_font_get (xcb_connection_t *c,
+             xcb_screen_t     *screen,
+             xcb_window_t      window,
+             const char       *font_name)
+{
+  uint32_t             value_list[3];
+  xcb_void_cookie_t    cookie_font;
+  xcb_void_cookie_t    cookie_gc;
+  xcb_generic_error_t *error;
+  xcb_font_t           font;
+  xcb_gcontext_t       gc;
+  uint32_t             mask;
+
+  font = xcb_generate_id (c);
+  cookie_font = xcb_open_font_checked (c, font,
+                                       strlen (font_name),
+                                       font_name);
+
+  error = xcb_request_check (c, cookie_font);
+  if (error) {
+    fprintf (stderr, "ERROR: can't open font : %d\n", error->error_code);
+    xcb_disconnect (c);
+    return -1;
+  }
+
+  gc = xcb_generate_id (c);
+  mask = XCB_GC_FOREGROUND | XCB_GC_BACKGROUND | XCB_GC_FONT;
+  value_list[0] = screen->black_pixel;
+  value_list[1] = screen->white_pixel;
+  value_list[2] = font;
+  cookie_gc = xcb_create_gc_checked (c, gc, window, mask, value_list);
+  error = xcb_request_check (c, cookie_gc);
+  if (error) {
+    fprintf (stderr, "ERROR: can't create gc : %d\n", error->error_code);
+    xcb_disconnect (c);
+    exit (-1);
+  }
+
+  cookie_font = xcb_close_font_checked (c, font);
+  error = xcb_request_check (c, cookie_font);
+  if (error) {
+    fprintf (stderr, "ERROR: can't close font : %d\n", error->error_code);
+    xcb_disconnect (c);
+    exit (-1);
+  }
+
+  return gc;
+}
+
+static void
+cursor_set (xcb_connection_t *c,
+            xcb_screen_t     *screen,
+            xcb_window_t      window,
+            int               cursor_id)
+{
+  uint32_t             values_list[3];
+  xcb_void_cookie_t    cookie_font;
+  xcb_void_cookie_t    cookie_gc;
+  xcb_generic_error_t *error;
+  xcb_font_t           font;
+  xcb_cursor_t         cursor;
+  xcb_gcontext_t       gc;
+  uint32_t             mask;
+  uint32_t             value_list;
+
+  font = xcb_generate_id (c);
+  cookie_font = xcb_open_font_checked (c, font,
+                                       strlen ("cursor"),
+                                       "cursor");
+  error = xcb_request_check (c, cookie_font);
+  if (error) {
+    fprintf (stderr, "ERROR: can't open font : %d\n", error->error_code);
+    xcb_disconnect (c);
+    exit (-1);
+  }
+
+  cursor = xcb_generate_id (c);
+  xcb_create_glyph_cursor (c, cursor, font, font,
+                           cursor_id, cursor_id + 1,
+                           0, 0, 0,
+                           0, 0, 0);
+
+  gc = xcb_generate_id (c);
+  mask = XCB_GC_FOREGROUND | XCB_GC_BACKGROUND | XCB_GC_FONT;
+  values_list[0] = screen->black_pixel;
+  values_list[1] = screen->white_pixel;
+  values_list[2] = font;
+  cookie_gc = xcb_create_gc_checked (c, gc, window, mask, values_list);
+  error = xcb_request_check (c, cookie_gc);
+  if (error) {
+    fprintf (stderr, "ERROR: can't create gc : %d\n", error->error_code);
+    xcb_disconnect (c);
+    exit (-1);
+  }
+
+  mask = XCB_CW_CURSOR;
+  value_list = cursor;
+  xcb_change_window_attributes (c, window, mask, &value_list);
+
+  xcb_free_cursor (c, cursor);
+
+  cookie_font = xcb_close_font_checked (c, font);
+  error = xcb_request_check (c, cookie_font);
+  if (error) {
+    fprintf (stderr, "ERROR: can't close font : %d\n", error->error_code);
+    xcb_disconnect (c);
+    exit (-1);
+  }
+}
+
+int main ()
+{
+  xcb_screen_iterator_t screen_iter;
+  xcb_connection_t     *c;
+  const xcb_setup_t    *setup;
+  xcb_screen_t         *screen;
+  xcb_generic_event_t  *e;
+  xcb_generic_error_t  *error;
+  xcb_void_cookie_t     cookie_window;
+  xcb_void_cookie_t     cookie_map;
+  xcb_window_t          window;
+  uint32_t              mask;
+  uint32_t              values[2];
+  int                   screen_number;
+  uint8_t               is_hand = 0;
+
+  /* getting the connection */
+  c = xcb_connect (NULL, &screen_number);
+  if (!c) {
+    fprintf (stderr, "ERROR: can't connect to an X server\n");
+    return -1;
+  }
+
+  /* getting the current screen */
+  setup = xcb_get_setup (c);
+
+  screen = NULL;
+  screen_iter = xcb_setup_roots_iterator (setup);
+  for (; screen_iter.rem != 0; --screen_number, xcb_screen_next (&screen_iter))
+    if (screen_number == 0)
+      {
+        screen = screen_iter.data;
+        break;
+      }
+  if (!screen) {
+    fprintf (stderr, "ERROR: can't get the current screen\n");
+    xcb_disconnect (c);
+    return -1;
+  }
+
+  /* creating the window */
+  window = xcb_generate_id (c);
+  mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
+  values[0] = screen->white_pixel;
+  values[1] =
+    XCB_EVENT_MASK_KEY_RELEASE |
+    XCB_EVENT_MASK_BUTTON_PRESS |
+    XCB_EVENT_MASK_EXPOSURE |
+    XCB_EVENT_MASK_POINTER_MOTION;
+  cookie_window = xcb_create_window_checked (c,
+                                             screen->root_depth,
+                                             window, screen->root,
+                                             20, 200, WIDTH, HEIGHT,
+                                             0, XCB_WINDOW_CLASS_INPUT_OUTPUT,
+                                             screen->root_visual,
+                                             mask, values);
+  cookie_map = xcb_map_window_checked (c, window);
+
+  /* error managing */
+  error = xcb_request_check (c, cookie_window);
+  if (error) {
+    fprintf (stderr, "ERROR: can't create window : %d\n", error->error_code);
+    xcb_disconnect (c);
+    return -1;
+  }
+  error = xcb_request_check (c, cookie_map);
+  if (error) {
+    fprintf (stderr, "ERROR: can't map window : %d\n", error->error_code);
+    xcb_disconnect (c);
+    return -1;
+  }
+
+  cursor_set (c, screen, window, 68);
+
+  xcb_flush(c);
+
+  while (1) {
+    e = xcb_poll_for_event(c);
+    if (e) {
+      switch (e->response_type & ~0x80) {
+      case XCB_EXPOSE: {
+        char *text;
+
+        text = "click here to change cursor";
+        button_draw (c, screen, window,
+                     (WIDTH - 7 * strlen(text)) / 2,
+                     (HEIGHT - 16) / 2, text);
+
+        text = "Press ESC key to exit...";
+        text_draw (c, screen, window, 10, HEIGHT - 10, text);
+        break;
+      }
+      case XCB_BUTTON_PRESS: {
+        xcb_button_press_event_t *ev;
+        int                       length;
+
+        ev = (xcb_button_press_event_t *)e;
+        length = strlen ("click here to change cursor");
+
+        if ((ev->event_x >= (WIDTH - 7 * length) / 2) &&
+            (ev->event_x <= ((WIDTH - 7 * length) / 2 + 7 * length + 6)) &&
+            (ev->event_y >= (HEIGHT - 16) / 2 - 19) &&
+            (ev->event_y <= ((HEIGHT - 16) / 2)))
+          is_hand = 1 - is_hand;
+
+        is_hand ? cursor_set (c, screen, window, 58) : cursor_set (c, screen, window, 68);
+      }
+      case XCB_KEY_RELEASE: {
+        xcb_key_release_event_t *ev;
+
+        ev = (xcb_key_release_event_t *)e;
+
+        switch (ev->detail) {
+          /* ESC */
+        case 9:
+          free (e);
+          xcb_disconnect (c);
+          return 0;
+        }
+      }
+      }
+      free (e);
+    }
+  }
+
+  return 0;
+}
+\end{minted}
+  \end{enumerate}
+\item
+  \protect\hypertarget{translation}{}{Translation of basic Xlib
+  functions and macros}
+
+  The problem when you want to port an Xlib program to XCB is that you
+  don't know if the Xlib function that you want to "translate" is a X
+  Window one or an Xlib macro. In that section, we describe a way to
+  translate the usual functions or macros that Xlib provides. It's
+  usually just a member of a structure.
+
+  \begin{enumerate}
+  \item
+    \protect\hypertarget{displaystructure}{}{Members of the Display
+    structure}
+
+    In this section, we look at how to translate the macros that return
+    some members of the {Display} structure. They are obtained by using
+    a function that requires a {xcb\_connection\_t *} or a member of the
+    {xcb\_setup\_t} structure (via the function {xcb\_get\_setup}), or a
+    function that requires that structure.
+
+    \begin{enumerate}
+    \item
+      \protect\hypertarget{ConnectionNumber}{}{ConnectionNumber}
+
+      This number is the file descriptor that connects the client to the
+      server. You just have to use that function:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+int xcb_get_file_descriptor (xcb_connection_t *c);
+\end{minted}
+    \item
+      \protect\hypertarget{DefaultScreen}{}{}DefaultScreen
+
+      That number is not stored by XCB. It is returned in the second
+      parameter of the function
+      {\protect\hyperlink{openconn}{xcb\_connect}}. Hence, you have to
+      store it yourself if you want to use it. Then, to get the
+      {xcb\_screen\_t} structure, you have to iterate on the screens.
+      The equivalent function of the Xlib's {ScreenOfDisplay} function
+      can be found \protect\hyperlink{ScreenOfDisplay}{below}. This is
+      also provided in the xcb\_aux\_t library as
+      {xcb\_aux\_get\_screen()}. OK, here is the small piece of code to
+      get that number:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+int               screen_default_nbr;
+
+/* you pass the name of the display you want to xcb_connect_t */
+
+c = xcb_connect (display_name, &screen_default_nbr);
+
+/* screen_default_nbr contains now the number of the default screen */
+\end{minted}
+    \item
+      \protect\hypertarget{QLength}{}{}QLength
+
+      Not documented yet.
+
+      However, this points out a basic difference in philosophy between
+      Xlib and XCB. Xlib has several functions for filtering and
+      manipulating the incoming and outgoing X message queues. XCB
+      wishes to hide this as much as possible from the user, which
+      allows for more freedom in implementation strategies.
+    \item
+      \protect\hypertarget{ScreenCount}{}{}ScreenCount
+
+      You get the count of screens with the functions {xcb\_get\_setup}
+      and {xcb\_setup\_roots\_iterator} (if you need to iterate):
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+int               screen_count;
+
+/* you init the connection */
+
+screen_count = xcb_setup_roots_iterator (xcb_get_setup (c)).rem;
+
+/* screen_count contains now the count of screens */
+\end{minted}
+
+      If you don't want to iterate over the screens, a better way to get
+      that number is to use {xcb\_setup\_roots\_length\_t}:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+int               screen_count;
+
+/* you init the connection */
+
+screen_count = xcb_setup_roots_length (xcb_get_setup (c));
+
+/* screen_count contains now the count of screens */
+\end{minted}
+    \item
+      \protect\hypertarget{ServerVendor}{}{}ServerVendor
+
+      You get the name of the vendor of the server hardware with the
+      functions {xcb\_get\_setup} and {xcb\_setup\_vendor}. Beware that,
+      unlike Xlib, the string returned by XCB is not necessarily
+      null-terminaled:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+char             *vendor = NULL;
+int               length;
+
+/* you init the connection */
+length = xcb_setup_vendor_length (xcb_get_setup (c));
+vendor = (char *)malloc (length + 1);
+if (vendor)
+memcpy (vendor, xcb_setup_vendor (xcb_get_setup (c)), length);
+vendor[length] = '\0';
+
+/* vendor contains now the name of the vendor. Must be freed when not used anymore */
+\end{minted}
+    \item
+      \protect\hypertarget{ProtocolVersion}{}{}ProtocolVersion
+
+      You get the major version of the protocol in the {xcb\_setup\_t}
+      structure, with the function {xcb\_get\_setup}:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+uint16_t          protocol_major_version;
+
+/* you init the connection */
+
+protocol_major_version = xcb_get_setup (c)->protocol_major_version;
+
+/* protocol_major_version contains now the major version of the protocol */
+\end{minted}
+    \item
+      \protect\hypertarget{ProtocolRevision}{}{}ProtocolRevision
+
+      You get the minor version of the protocol in the {xcb\_setup\_t}
+      structure, with the function {xcb\_get\_setup}:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+uint16_t          protocol_minor_version;
+
+/* you init the connection */
+
+protocol_minor_version = xcb_get_setup (c)->protocol_minor_version;
+
+/* protocol_minor_version contains now the minor version of the protocol */
+\end{minted}
+    \item
+      \protect\hypertarget{VendorRelease}{}{}VendorRelease
+
+      You get the number of the release of the server hardware in the
+      {xcb\_setup\_t} structure, with the function {xcb\_get\_setup}:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+uint32_t          release_number;
+
+/* you init the connection */
+
+release_number = xcb_get_setup (c)->release_number;
+
+/* release_number contains now the number of the release of the server hardware */
+\end{minted}
+    \item
+      \protect\hypertarget{DisplayString}{}{}DisplayString
+
+      The name of the display is not stored in XCB. You have to store it
+      by yourself.
+    \item
+      \protect\hypertarget{BitmapUnit}{}{}BitmapUnit
+
+      You get the bitmap scanline unit in the {xcb\_setup\_t} structure,
+      with the function {xcb\_get\_setup}:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+uint8_t           bitmap_format_scanline_unit;
+
+/* you init the connection */
+
+bitmap_format_scanline_unit = xcb_get_setup (c)->bitmap_format_scanline_unit;
+
+/* bitmap_format_scanline_unit contains now the bitmap scanline unit */
+\end{minted}
+    \item
+      \protect\hypertarget{BitmapBitOrder}{}{}BitmapBitOrder
+
+      You get the bitmap bit order in the {xcb\_setup\_t} structure,
+      with the function {xcb\_get\_setup}:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+uint8_t           bitmap_format_bit_order;
+
+/* you init the connection */
+
+bitmap_format_bit_order = xcb_get_setup (c)->bitmap_format_bit_order;
+
+/* bitmap_format_bit_order contains now the bitmap bit order */
+\end{minted}
+    \item
+      \protect\hypertarget{BitmapPad}{}{}BitmapPad
+
+      You get the bitmap scanline pad in the {xcb\_setup\_t} structure,
+      with the function {xcb\_get\_setup}:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+uint8_t           bitmap_format_scanline_pad;
+
+/* you init the connection */
+
+bitmap_format_scanline_pad = xcb_get_setup (c)->bitmap_format_scanline_pad;
+
+/* bitmap_format_scanline_pad contains now the bitmap scanline pad */
+\end{minted}
+    \item
+      \protect\hypertarget{ImageByteOrder}{}{}ImageByteOrder
+
+      You get the image byte order in the {xcb\_setup\_t} structure,
+      with the function {xcb\_get\_setup}:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+uint8_t           image_byte_order;
+
+/* you init the connection */
+
+image_byte_order = xcb_get_setup (c)->image_byte_order;
+
+/* image_byte_order contains now the image byte order */
+\end{minted}
+    \end{enumerate}
+  \item
+    \protect\hypertarget{screenofdisplay}{}{ScreenOfDisplay related
+    functions}
+
+    in Xlib, {ScreenOfDisplay} returns a {Screen} structure that
+    contains several characteristics of your screen. XCB has a similar
+    structure ({xcb\_screen\_t}), but the way to obtain it is a bit
+    different. With Xlib, you just provide the number of the screen and
+    you grab it from an array. With XCB, you iterate over all the
+    screens to obtain the one you want. The complexity of this operation
+    is O(n). So the best is to store this structure if you use it often.
+    See \protect\hyperlink{ScreenOfDisplay}{screen\_of\_display} just
+    below.
+
+    Xlib provides generally two functions to obtain the characteristics
+    related to the screen. One with the display and the number of the
+    screen, which calls {ScreenOfDisplay}, and the other that uses the
+    {Screen} structure. This might be a bit confusing. As mentioned
+    above, with XCB, it is better to store the {xcb\_screen\_t}
+    structure. Then, you have to read the members of this structure.
+    That's why the Xlib functions are put by pairs (or more) as, with
+    XCB, you will use the same code.
+
+    \begin{enumerate}
+    \item
+      \protect\hypertarget{ScreenOfDisplay}{}{ScreenOfDisplay}
+
+      This function returns the Xlib {Screen} structure. With XCB, you
+      iterate over all the screens and once you get the one you want,
+      you return it:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_screen_t *screen_of_display (xcb_connection_t *c,
+                                 int               screen)
+{
+  xcb_screen_iterator_t iter;
+
+  iter = xcb_setup_roots_iterator (xcb_get_setup (c));
+  for (; iter.rem; --screen, xcb_screen_next (&iter))
+    if (screen == 0)
+      return iter.data;
+
+  return NULL;
+}
+\end{minted}
+
+      As mentioned above, you might want to store the value returned by
+      this function.
+
+      All the functions below will use the result of that function, as
+      they just grab a specific member of the {xcb\_screen\_t}
+      structure.
+    \item
+      \protect\hypertarget{DefaultScreenOfDisplay}{}{}DefaultScreenOfDisplay
+
+      It is the default screen that you obtain when you connect to the X
+      server. It suffices to call the
+      \protect\hyperlink{ScreenOfDisplay}{screen\_of\_display} function
+      above with the connection and the number of the default screen.
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+int               screen_default_nbr;
+xcb_screen_t     *default_screen;  /* the returned default screen */
+
+/* you pass the name of the display you want to xcb_connect_t */
+
+c = xcb_connect (display_name, &screen_default_nbr);
+default_screen = screen_of_display (c, screen_default_nbr);
+
+/* default_screen contains now the default root window, or a NULL window if no screen is found */
+\end{minted}
+    \item
+      \protect\hypertarget{RootWindow}{}{RootWindow /
+      RootWindowOfScreen}\\
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+xcb_screen_t     *screen;
+int               screen_nbr;
+xcb_window_t      root_window = { 0 };  /* the returned window */
+
+/* you init the connection and screen_nbr */
+
+screen = screen_of_display (c, screen_nbr);
+if (screen)
+  root_window = screen->root;
+
+/* root_window contains now the root window, or a NULL window if no screen is found */
+\end{minted}
+    \item
+      \protect\hypertarget{DefaultRootWindow}{}{DefaultRootWindow}
+
+      It is the root window of the default screen. So, you call
+      \protect\hypertarget{ScreenOfDisplay}{}{ScreenOfDisplay} with the
+      default screen number and you get the
+      \protect\hyperlink{RootWindow}{root window} as above:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+xcb_screen_t     *screen;
+int               screen_default_nbr;
+xcb_window_t      root_window = { 0 };  /* the returned root window */
+
+/* you pass the name of the display you want to xcb_connect_t */
+
+c = xcb_connect (display_name, &screen_default_nbr);
+screen = screen_of_display (c, screen_default_nbr);
+if (screen)
+  root_window = screen->root;
+
+/* root_window contains now the default root window, or a NULL window if no screen is found */
+\end{minted}
+    \item
+      \protect\hypertarget{DefaultVisual}{}{DefaultVisual /
+      DefaultVisualOfScreen}
+
+      While a Visual is, in Xlib, a structure, in XCB, there are two
+      types: {xcb\_visualid\_t}, which is the Id of the visual, and
+      {xcb\_visualtype\_t}, which corresponds to the Xlib Visual. To get
+      the Id of the visual of a screen, just get the {root\_visual}
+      member of a {xcb\_screen\_t}:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+xcb_screen_t     *screen;
+int               screen_nbr;
+xcb_visualid_t    root_visual = { 0 };    /* the returned visual Id */
+
+/* you init the connection and screen_nbr */
+
+screen = screen_of_display (c, screen_nbr);
+if (screen)
+  root_visual = screen->root_visual;
+
+/* root_visual contains now the value of the Id of the visual, or a NULL visual if no screen is found */
+\end{minted}
+
+      To get the {xcb\_visualtype\_t} structure, it's a bit less easy.
+      You have to get the {xcb\_screen\_t} structure that you want, get
+      its {root\_visual} member, then iterate over the {xcb\_depth\_t}s
+      and the {xcb\_visualtype\_t}s, and compare the {xcb\_visualid\_t}
+      of these {xcb\_visualtype\_t}s: with {root\_visual}:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+xcb_screen_t     *screen;
+int               screen_nbr;
+xcb_visualid_t    root_visual = { 0 };
+xcb_visualtype_t  *visual_type = NULL;    /* the returned visual type */
+
+/* you init the connection and screen_nbr */
+
+screen = screen_of_display (c, screen_nbr);
+if (screen) {
+  xcb_depth_iterator_t depth_iter;
+
+  depth_iter = xcb_screen_allowed_depths_iterator (screen);
+  for (; depth_iter.rem; xcb_depth_next (&depth_iter)) {
+    xcb_visualtype_iterator_t visual_iter;
+
+    visual_iter = xcb_depth_visuals_iterator (depth_iter.data);
+    for (; visual_iter.rem; xcb_visualtype_next (&visual_iter)) {
+      if (screen->root_visual == visual_iter.data->visual_id) {
+        visual_type = visual_iter.data;
+        break;
+      }
+    }
+  }
+}
+
+/* visual_type contains now the visual structure, or a NULL visual structure if no screen is found */
+\end{minted}
+    \item
+      \protect\hypertarget{DefaultGC}{}{DefaultGC / DefaultGCOfScreen}
+
+      This default Graphic Context is just a newly created Graphic
+      Context, associated to the root window of a {xcb\_screen\_t},
+      using the black white pixels of that screen:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+xcb_screen_t     *screen;
+int               screen_nbr;
+xcb_gcontext_t    gc = { 0 };    /* the returned default graphic context */
+
+/* you init the connection and screen_nbr */
+
+screen = screen_of_display (c, screen_nbr);
+if (screen) {
+  xcb_drawable_t draw;
+  uint32_t       mask;
+  uint32_t       values[2];
+
+  gc = xcb_generate_id (c);
+  draw = screen->root;
+  mask = XCB_GC_FOREGROUND | XCB_GC_BACKGROUND;
+  values[0] = screen->black_pixel;
+  values[1] = screen->white_pixel;
+  xcb_create_gc (c, gc, draw, mask, values);
+}
+
+/* gc contains now the default graphic context */
+\end{minted}
+    \item
+      \protect\hypertarget{BlackPixel}{}{BlackPixel /
+      BlackPixelOfScreen}
+
+      It is the Id of the black pixel, which is in the structure of an
+      {xcb\_screen\_t}.
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+xcb_screen_t     *screen;
+int               screen_nbr;
+uint32_t          black_pixel = 0;    /* the returned black pixel */
+
+/* you init the connection and screen_nbr */
+
+screen = screen_of_display (c, screen_nbr);
+if (screen)
+  black_pixel = screen->black_pixel;
+
+/* black_pixel contains now the value of the black pixel, or 0 if no screen is found */
+\end{minted}
+    \item
+      \protect\hypertarget{WhitePixel}{}{WhitePixel /
+      WhitePixelOfScreen}
+
+      It is the Id of the white pixel, which is in the structure of an
+      {xcb\_screen\_t}.
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+xcb_screen_t     *screen;
+int               screen_nbr;
+uint32_t          white_pixel = 0;    /* the returned white pixel */
+
+/* you init the connection and screen_nbr */
+
+screen = screen_of_display (c, screen_nbr);
+if (screen)
+  white_pixel = screen->white_pixel;
+
+/* white_pixel contains now the value of the white pixel, or 0 if no screen is found */
+\end{minted}
+    \item
+      \protect\hypertarget{DisplayWidth}{}{DisplayWidth / WidthOfScreen}
+
+      It is the width in pixels of the screen that you want, and which
+      is in the structure of the corresponding {xcb\_screen\_t}.
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+xcb_screen_t     *screen;
+int               screen_nbr;
+uint32_t          width_in_pixels = 0;    /* the returned width in pixels */
+
+/* you init the connection and screen_nbr */
+
+screen = screen_of_display (c, screen_nbr);
+if (screen)
+  width_in_pixels = screen->width_in_pixels;
+
+/* width_in_pixels contains now the width in pixels, or 0 if no screen is found */
+\end{minted}
+    \item
+      \protect\hypertarget{DisplayHeight}{}{DisplayHeight /
+      HeightOfScreen}
+
+      It is the height in pixels of the screen that you want, and which
+      is in the structure of the corresponding {xcb\_screen\_t}.
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+xcb_screen_t     *screen;
+int               screen_nbr;
+uint32_t          height_in_pixels = 0;    /* the returned height in pixels */
+
+/* you init the connection and screen_nbr */
+
+screen = screen_of_display (c, screen_nbr);
+if (screen)
+  height_in_pixels = screen->height_in_pixels;
+
+/* height_in_pixels contains now the height in pixels, or 0 if no screen is found */
+\end{minted}
+    \item
+      \protect\hypertarget{DisplayWidthMM}{}{DisplayWidthMM /
+      WidthMMOfScreen}
+
+      It is the width in millimeters of the screen that you want, and
+      which is in the structure of the corresponding {xcb\_screen\_t}.
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+xcb_screen_t     *screen;
+int               screen_nbr;
+uint32_t          width_in_millimeters = 0;    /* the returned width in millimeters */
+
+/* you init the connection and screen_nbr */
+
+screen = screen_of_display (c, screen_nbr);
+if (screen)
+  width_in_millimeters = screen->width_in_millimeters;
+
+/* width_in_millimeters contains now the width in millimeters, or 0 if no screen is found */
+\end{minted}
+    \item
+      \protect\hypertarget{DisplayHeightMM}{}{DisplayHeightMM /
+      HeightMMOfScreen}
+
+      It is the height in millimeters of the screen that you want, and
+      which is in the structure of the corresponding {xcb\_screen\_t}.
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+xcb_screen_t     *screen;
+int               screen_nbr;
+uint32_t          height_in_millimeters = 0;    /* the returned height in millimeters */
+
+/* you init the connection and screen_nbr */
+
+screen = screen_of_display (c, screen_nbr);
+if (screen)
+  height_in_millimeters = screen->height_in_millimeters;
+
+/* height_in_millimeters contains now the height in millimeters, or 0 if no screen is found */
+\end{minted}
+    \item
+      \protect\hypertarget{DisplayPlanes}{}{DisplayPlanes / DefaultDepth
+      / DefaultDepthOfScreen / PlanesOfScreen}
+
+      It is the depth (in bits) of the root window of the screen. You
+      get it from the {xcb\_screen\_t} structure.
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+xcb_screen_t     *screen;
+int               screen_nbr;
+uint8_t           root_depth = 0;  /* the returned depth of the root window */
+
+/* you init the connection and screen_nbr */
+
+screen = screen_of_display (c, screen_nbr);
+if (screen)
+  root_depth = screen->root_depth;
+
+/* root_depth contains now the depth of the root window, or 0 if no screen is found */
+\end{minted}
+    \item
+      \protect\hypertarget{DefaultColormap}{}{DefaultColormap /
+      DefaultColormapOfScreen}
+
+      This is the default colormap of the screen (and not the (default)
+      colormap of the default screen !). As usual, you get it from the
+      {xcb\_screen\_t} structure:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+xcb_screen_t     *screen;
+int               screen_nbr;
+xcb_colormap_t    default_colormap = { 0 };  /* the returned default colormap */
+
+/* you init the connection and screen_nbr */
+
+screen = screen_of_display (c, screen_nbr);
+if (screen)
+  default_colormap = screen->default_colormap;
+
+/* default_colormap contains now the default colormap, or a NULL colormap if no screen is found */
+\end{minted}
+    \item
+      \protect\hypertarget{MinCmapsOfScreen}{}{}MinCmapsOfScreen
+
+      You get the minimum installed colormaps in the {xcb\_screen\_t}
+      structure:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+xcb_screen_t     *screen;
+int               screen_nbr;
+uint16_t          min_installed_maps = 0;  /* the returned minimum installed colormaps */
+
+/* you init the connection and screen_nbr */
+
+screen = screen_of_display (c, screen_nbr);
+if (screen)
+  min_installed_maps = screen->min_installed_maps;
+
+/* min_installed_maps contains now the minimum installed colormaps, or 0 if no screen is found */
+\end{minted}
+    \item
+      \protect\hypertarget{MaxCmapsOfScreen}{}{}MaxCmapsOfScreen
+
+      You get the maximum installed colormaps in the {xcb\_screen\_t}
+      structure:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+xcb_screen_t     *screen;
+int               screen_nbr;
+uint16_t          max_installed_maps = 0;  /* the returned maximum installed colormaps */
+
+/* you init the connection and screen_nbr */
+
+screen = screen_of_display (c, screen_nbr);
+if (screen)
+  max_installed_maps = screen->max_installed_maps;
+
+/* max_installed_maps contains now the maximum installed colormaps, or 0 if no screen is found */
+\end{minted}
+    \item
+      \protect\hypertarget{DoesSaveUnders}{}{}DoesSaveUnders
+
+      You know if {save\_unders} is set, by looking in the
+      {xcb\_screen\_t} structure:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+xcb_screen_t     *screen;
+int               screen_nbr;
+uint8_t           save_unders = 0;  /* the returned value of save_unders */
+
+/* you init the connection and screen_nbr */
+
+screen = screen_of_display (c, screen_nbr);
+if (screen)
+  save_unders = screen->save_unders;
+
+/* save_unders contains now the value of save_unders, or FALSE if no screen is found */
+\end{minted}
+    \item
+      \protect\hypertarget{DoesBackingStore}{}{}DoesBackingStore
+
+      You know the value of {backing\_stores}, by looking in the
+      {xcb\_screen\_t} structure:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+xcb_screen_t     *screen;
+int               screen_nbr;
+uint8_t           backing_stores = 0;  /* the returned value of backing_stores */
+
+/* you init the connection and screen_nbr */
+
+screen = screen_of_display (c, screen_nbr);
+if (screen)
+  backing_stores = screen->backing_stores;
+
+/* backing_stores contains now the value of backing_stores, or FALSE if no screen is found */
+\end{minted}
+    \item
+      \protect\hypertarget{EventMaskOfScreen}{}{}EventMaskOfScreen
+
+      To get the current input masks, you look in the {xcb\_screen\_t}
+      structure:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+xcb_screen_t     *screen;
+int               screen_nbr;
+uint32_t          current_input_masks = 0;  /* the returned value of current input masks */
+
+/* you init the connection and screen_nbr */
+
+screen = screen_of_display (c, screen_nbr);
+if (screen)
+  current_input_masks = screen->current_input_masks;
+
+/* current_input_masks contains now the value of the current input masks, or FALSE if no screen is found */
+\end{minted}
+    \end{enumerate}
+  \item
+    \protect\hypertarget{misc}{}{Miscellaneous macros}
+
+    \begin{enumerate}
+    \item
+      \protect\hypertarget{DisplayOfScreen}{}{}DisplayOfScreen
+
+      in Xlib, the {Screen} structure stores its associated {Display}
+      structure. This is not the case in the X Window protocol, hence,
+      it's also not the case in XCB. So you have to store it by
+      yourself.
+    \item
+      \protect\hypertarget{DisplayCells}{}{}DisplayCells / CellsOfScreen
+
+      To get the colormap entries, you look in the {xcb\_visualtype\_t}
+      structure, that you grab like
+      \protect\hyperlink{DefaultVisual}{here}:
+
+\begin{minted}[mathescape,linenos,tabsize=2,breaklines,fontsize=\small]{c}
+xcb_connection_t *c;
+xcb_visualtype_t *visual_type;
+uint16_t          colormap_entries = 0;  /* the returned value of the colormap entries */
+
+/* you init the connection and visual_type */
+
+if (visual_type)
+  colormap_entries = visual_type->colormap_entries;
+
+/* colormap_entries contains now the value of the colormap entries, or FALSE if no screen is found */
+\end{minted}
+    \end{enumerate}
+  \end{enumerate}
+\end{enumerate}
+
+\end{document}
